@@ -1,0 +1,10 @@
+# Meddleware dashboard
+
+> All Meddleware tools in one interface (Walrus Storage, Sealed Storage, Access Gate, Token Issuance, Treasury), sharing one connected Sui wallet. Interactive; for automation use the SDKs and APIs listed in the developer docs.
+
+Address: https://dash.meddleware.co.uk
+
+## Documentation
+
+- [User documentation](https://docs.meddleware.co.uk/)
+- [Developer documentation (llms.txt)](https://dev.meddleware.co.uk/llms.txt)
