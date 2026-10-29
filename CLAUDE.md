@@ -105,5 +105,5 @@ npm run dev
 
 This dashboard shows only the hosted product and a white-label deploy option. Developer
 documentation (self-host guides, library docs, fork-your-own instructions) is intentionally
-deferred to a future `dev.meddleware.co.uk` sub-domain. Do not add self-host or library
+deferred to a future `meddleware.dev` sub-domain. Do not add self-host or library
 content here.

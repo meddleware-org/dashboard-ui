@@ -7,4 +7,4 @@ Address: https://dash.meddleware.co.uk
 ## Documentation
 
 - [User documentation](https://docs.meddleware.co.uk/)
-- [Developer documentation (llms.txt)](https://dev.meddleware.co.uk/llms.txt)
+- [Developer documentation (llms.txt)](https://meddleware.dev/llms.txt)

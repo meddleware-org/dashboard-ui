@@ -65,7 +65,7 @@ const { account, disconnect } = useWallet({
 })
 
 const DOCS_URL = import.meta.env.VITE_DOCS_URL || 'https://docs.meddleware.co.uk/'
-const DEV_URL = import.meta.env.VITE_DEV_URL || 'https://dev.meddleware.co.uk/'
+const DEV_URL = import.meta.env.VITE_DEV_URL || 'https://meddleware.dev/'
 
 // SuiVision has no localnet explorer, so only build a link for public networks; otherwise the
 // address is shown copy-only.
