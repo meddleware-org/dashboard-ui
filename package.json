@@ -1,6 +1,6 @@
 {
   "name": "@meddleware/dashboard-ui",
-  "version": "0.1.91",
+  "version": "0.1.92",
   "homepage": "https://docs.meddleware.co.uk/",
   "description": "Meddleware tools hub — Vue 3 SPA listing hosted services (Walrus, Access Gate) with white-label deploy options.",
   "author": "Meddleware <dev@meddleware.co.uk>",
@@ -37,15 +37,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@meddleware/access-gate-ui": "^0.1.41",
-    "@meddleware/dao-ui": "^0.1.37",
-    "@meddleware/design-tokens": "^0.1.10",
-    "@meddleware/sealed-storage-ui": "^0.0.42",
-    "@meddleware/token-issuance-ui": "^0.0.40",
-    "@meddleware/treasury-ui": "^0.0.21",
-    "@meddleware/ui": "^0.1.34",
-    "@meddleware/wallet-adapter": "^0.0.18",
-    "@meddleware/walrus-storage-ui": "^0.1.63",
+    "@meddleware/access-gate-ui": "^0.1.42",
+    "@meddleware/dao-ui": "^0.1.38",
+    "@meddleware/design-tokens": "^0.1.11",
+    "@meddleware/sealed-storage-ui": "^0.0.43",
+    "@meddleware/token-issuance-ui": "^0.0.41",
+    "@meddleware/treasury-ui": "^0.0.22",
+    "@meddleware/ui": "^0.1.35",
+    "@meddleware/wallet-adapter": "^0.0.19",
+    "@meddleware/walrus-storage-ui": "^0.1.64",
     "@mysten/sui": "^2.36.0",
     "vue": "^3.5.44",
     "vue-router": "^5.4.0"
