@@ -15,7 +15,7 @@
 **Deployed by:** `post-bootstrap/dashboard-ui/overlays/default` (digest from `config/images.yaml`)
 **Build args:** the `VITE_*` list above and `CSP` — public configuration, none secret
 **Deployment status:** npm v0.1.85 (2026-10-18, trusted publishing); image `quay.io/meddleware-org/dashboard-ui` serving `dash.meddleware.co.uk` at 0.1.85 (`sha256:3696a6ac…c04f`; release tag `v0.1.85` = `c81fb02`, Publish run 39138496552; released, signature verified against the workflow-anchored identity (`verify-digests.sh` 16/16) and deployed 2026-10-18, rollout succeeded; 0.1.84 was deployed 2026-10-09; live headers on `/` re-checked 2026-10-18)
-**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-03 · re-verified 2026-10-09 · fix wave 2026-10-18 (0.1.85, released and deployed); 0.1.92 re-verified 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages)
+**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-03 · re-verified 2026-10-09 · fix wave 2026-10-18 (0.1.85, released and deployed); 0.1.92 re-verified 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages); 0.1.93 re-verified 2026-10-30 (Dependency updates (minor and patch groups) and workflow action bumps)
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — it owns the one wallet connection every embedded tool signs through, so its ceiling is the union of the tools' signing surfaces. No High or Critical in dashboard code.
 **Status:** fix wave 2026-10-18 (0.1.85, released and deployed 2026-10-18; signature verified, rollout succeeded) — 20 findings (2 Positive): 15 RESOLVED, 1 ADJUDICATED, 1 ACCEPTED-RISK, 1 DEFERRED
