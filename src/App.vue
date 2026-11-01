@@ -1,54 +1,41 @@
 <script setup lang="ts">
+// The dashboard shell: header, sidebar (a drawer on a phone), the routed tool, footer. The shell hosts the one shared wallet connection and
+// the network choice; every tool view renders inline from its own package and reads them from the @meddleware/wallet-adapter singleton.
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter, RouterView, RouterLink } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import {
-  AppHeader, AppSidebar, AppFooter,
-  ColorModeControl, SidebarItem, StatusWidget, CopyableAddress, ExplorerLink, CopyrightLine,
-  suiExplorerUrl, useColorMode,
+  AppFooter,
+  AppHeader,
+  AppSidebar,
+  ColorModeControl,
+  CopyableAddress,
+  CopyrightLine,
+  ExplorerLink,
+  SidebarGroup,
+  SidebarItem,
+  StatusWidget,
+  UiAppShell,
+  UiButton,
+  UiStatusDot,
+  useColorMode,
 } from '@meddleware/ui'
-import { useWallet, useNetwork } from '@meddleware/wallet-adapter'
-import NetworkSelector from './components/NetworkSelector.vue'
+import { suiExplorerUrl } from '@meddleware/web-utils'
+import { useNetwork, useWallet } from '@meddleware/wallet-adapter'
+import { DEFAULT_CHAIN } from './chains.js'
 import ChainSelector from './components/ChainSelector.vue'
+import NetworkSelector from './components/NetworkSelector.vue'
 
 const { mode } = useColorMode('dark')
 const route = useRoute()
-const router = useRouter()
 const { network } = useNetwork()
 
-// The sidebar has two modes. Top-level shows the organisation sections (Treasury, Blockchain).
-// Entering the Blockchain section swaps the sidebar to a chain selector with an up-one-level
-// control that returns to the top level without leaving the page.
+// The sidebar has two modes. Top level shows the organisation sections (Treasury, Blockchain). Entering the Blockchain section swaps it to a
+// chain selector with an up-one-level control that returns to the top level without leaving the page. The mode follows the route (so a
+// direct load, a reload or a back-forward lands right); `upOneLevel` sets 'top' without a route change, and that override stands until the
+// next navigation.
 type SidebarView = 'top' | 'blockchain'
-// Derived from the route below (immediate watcher) so a direct load / reload of /blockchain
-// shows the chain selector, not the top-level menu.
 const sidebarView = ref<SidebarView>('top')
-const selectedChain = ref('sui')
-
-const isTreasury = computed(() => route.path === '/')
-const isBlockchain = computed(() => route.path === '/blockchain')
-
-function goTreasury(navigate?: () => void): void {
-  sidebarView.value = 'top'
-  if (navigate) navigate()
-  else router.push('/')
-}
-
-function enterBlockchain(): void {
-  // No-op navigation if already on /blockchain (vue-router won't reload the same route);
-  // either way the sidebar switches to the chain selector.
-  sidebarView.value = 'blockchain'
-  if (route.path !== '/blockchain') router.push('/blockchain')
-}
-
-function upOneLevel(): void {
-  // Return the sidebar to the top level without navigating away from the current page.
-  sidebarView.value = 'top'
-}
-
-// Derive the sidebar mode from the route so it's correct on direct load / reload / redirect /
-// back-forward — /blockchain always opens the chain selector. `upOneLevel()` sets 'top' without a
-// route change, so this watcher (which fires only on path changes) leaves that transient override
-// intact until the next navigation.
+const selectedChain = ref(DEFAULT_CHAIN)
 watch(
   () => route.path,
   (p) => {
@@ -56,222 +43,120 @@ watch(
   },
   { immediate: true },
 )
+const isTreasury = computed(() => route.path === '/')
+const isBlockchain = computed(() => route.path === '/blockchain')
+const upOneLevel = (): void => {
+  sidebarView.value = 'top'
+}
+// Already on /blockchain: the link does not navigate, but the section still opens its chain selector.
+const openBlockchain = (): void => {
+  sidebarView.value = 'blockchain'
+}
 
-// The dashboard hosts the single shared wallet connection for every inline tool view. It
-// requests the superset of features the tools need so the connect control only offers wallets
-// capable of every operation; individual tools still feature-guard at call time.
-const { account, disconnect } = useWallet({
-  requiredFeatures: ['sui:signTransaction', 'sui:signPersonalMessage'],
-})
+// The dashboard hosts the single shared wallet connection for every inline tool view. It requests the superset of features the tools need so
+// the connect control only offers wallets capable of every operation; individual tools still feature-guard at call time.
+const { account, disconnect } = useWallet({ requiredFeatures: ['sui:signTransaction', 'sui:signPersonalMessage'] })
 
 const DOCS_URL = import.meta.env.VITE_DOCS_URL || 'https://docs.meddleware.co.uk/'
 const DEV_URL = import.meta.env.VITE_DEV_URL || 'https://meddleware.dev/'
 
-// SuiVision has no localnet explorer, so only build a link for public networks; otherwise the
-// address is shown copy-only.
-const accountExplorerHref = computed(() =>
-  account.value && network.value !== 'localnet'
-    ? suiExplorerUrl('account', account.value.address, network.value as 'testnet' | 'mainnet' | 'devnet')
-    : null,
-)
+// SuiVision has no localnet explorer, so a link exists only for public networks; otherwise the address is copy-only.
+const accountExplorerNetwork = computed(() => (network.value === 'mainnet' ? 'mainnet' : network.value === 'testnet' ? 'testnet' : null))
+const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : 'Meddleware'))
 </script>
 
 <template>
-  <div class="app-shell">
-    <AppHeader class="app-shell__header" variant="dark">
-      <template #brand>
-        <RouterLink to="/" class="brand-link" @click="goTreasury()">
-          <span class="brand-mark" aria-hidden="true">◆</span>
-          <span>Meddleware</span>
-        </RouterLink>
-      </template>
-      <template #actions>
-        <ColorModeControl v-model="mode" />
-      </template>
-    </AppHeader>
+  <UiAppShell>
+    <template #header>
+      <AppHeader variant="dark" sidebar-id="main-nav" menu-label="Open the menu">
+        <template #brand>
+          <RouterLink to="/" class="brand-link"><span class="brand-mark" aria-hidden="true">◆</span> Meddleware</RouterLink>
+        </template>
+        <template #actions>
+          <ColorModeControl v-model="mode" />
+        </template>
+      </AppHeader>
+    </template>
 
-    <AppSidebar class="app-shell__sidebar" variant="dark">
-      <!-- Top level: organisation sections -->
-      <template v-if="sidebarView === 'top'">
-        <router-link to="/" custom v-slot="{ navigate }">
-          <SidebarItem label="Treasury" icon="🏦" :active="isTreasury" @click="goTreasury(navigate)" />
-        </router-link>
-        <SidebarItem label="Blockchain" icon="⛓" :active="isBlockchain" @click="enterBlockchain" />
-      </template>
+    <template #sidebar>
+      <AppSidebar id="main-nav" variant="dark" nav-label="Dashboard">
+        <!-- Top level: organisation sections -->
+        <template v-if="sidebarView === 'top'">
+          <SidebarGroup label="Organisation" :level="1">
+            <RouterLink v-slot="{ href, navigate }" to="/" custom>
+              <SidebarItem label="Treasury" icon="🏦" :href="href" :active="isTreasury" @click="navigate" />
+            </RouterLink>
+            <RouterLink v-slot="{ href, navigate }" to="/blockchain" custom>
+              <SidebarItem
+                label="Blockchain"
+                icon="⛓"
+                :href="href"
+                :active="isBlockchain"
+                @click="(e: MouseEvent) => { navigate(e); openBlockchain() }"
+              />
+            </RouterLink>
+          </SidebarGroup>
+        </template>
 
-      <!-- Blockchain section: chain selector + up-one-level -->
-      <template v-else>
-        <button type="button" class="sidebar-up" @click="upOneLevel">
-          <span aria-hidden="true">←</span> Back
-        </button>
-        <ChainSelector v-model="selectedChain" />
-      </template>
+        <!-- Blockchain section: up-one-level + the chain selector -->
+        <template v-else>
+          <SidebarItem label="Back" icon="←" @click="upOneLevel" />
+          <ChainSelector v-model="selectedChain" />
+        </template>
 
-      <template #body>
-        <NetworkSelector v-if="account" class="sidebar-body" />
-      </template>
+        <template #body>
+          <NetworkSelector v-if="account" />
+        </template>
 
-      <!-- Sidebar foot holds only the wallet control (contextual). Copyright, docs links, and
-           status now live in the shell footer to free vertical space as the sidebar grows. -->
-      <template #foot>
-        <p v-if="account" class="sidebar-foot wallet-connected">
-          <CopyableAddress :address="account.address">
-            <ExplorerLink v-if="accountExplorerHref" :href="accountExplorerHref" :value="account.address" />
-          </CopyableAddress>
-          <button type="button" class="wallet-disconnect" @click="disconnect">Disconnect</button>
-        </p>
-        <p v-else class="sidebar-foot wallet-disconnected">No wallet connected</p>
-      </template>
-    </AppSidebar>
+        <template #foot>
+          <p v-if="account" class="foot">
+            <CopyableAddress :address="account.address">
+              <ExplorerLink v-if="accountExplorerNetwork" :href="suiExplorerUrl('account', account.address, accountExplorerNetwork)" :value="account.address" />
+            </CopyableAddress>
+            <UiButton variant="link" size="sm" @click="disconnect">Disconnect</UiButton>
+          </p>
+          <p v-else class="foot"><UiStatusDot status="unknown" size="sm" /> No wallet connected</p>
+        </template>
+      </AppSidebar>
+    </template>
 
-    <main class="app-shell__main">
-      <RouterView />
-    </main>
+    <h1 class="mw-visually-hidden">{{ title }}</h1>
+    <RouterView v-slot="{ Component, route: current }">
+      <component :is="Component" :chain="current.name === 'blockchain' ? selectedChain : undefined" />
+    </RouterView>
 
-    <AppFooter class="app-shell__footer" variant="dark" :docs-url="DOCS_URL" :dev-url="DEV_URL">
-      <template #start>
-        <CopyrightLine symbolVariant="kopimi" organisation-name="Meddleware" rightsStatement="jam" />
-      </template>
-      <StatusWidget class="footer-status" />
-    </AppFooter>
-  </div>
+    <template #footer>
+      <AppFooter variant="dark" :docs-url="DOCS_URL" :dev-url="DEV_URL">
+        <template #start>
+          <CopyrightLine symbol-variant="kopimi" organisation-name="Meddleware" rights-statement="jam" />
+        </template>
+        <StatusWidget />
+      </AppFooter>
+    </template>
+  </UiAppShell>
 </template>
 
 <style scoped>
-.app-shell {
-  display: grid;
-  grid-template-columns: var(--mw-sidebar-width, 240px) 1fr;
-  grid-template-rows: var(--mw-header-height, 56px) 1fr auto;
-  height: 100dvh;
-  overflow: hidden;
-}
-
-.app-shell__header {
-  grid-column: 1 / -1;
-}
-
-.app-shell__footer {
-  grid-column: 1 / -1;
-}
-
-.footer-status {
-  font-size: var(--font-size-sm);
-}
-
-.app-shell__sidebar {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.app-shell__main {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-@media (width <=720px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: var(--mw-header-height, 56px) 1fr auto;
-  }
-
-  .app-shell__sidebar {
-    display: none;
-  }
-}
-
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2xs);
   color: inherit;
   text-decoration: none;
 }
-
 .brand-mark {
   color: var(--accent);
 }
-
-/* ── Up-one-level control ──────────────────────────────── */
-.sidebar-up {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: none;
-  border: none;
-  /* Left padding matches SidebarItem so "← Back" aligns with the items below. */
-  padding: 0.2rem var(--space-sm);
-  margin-bottom: 0.35rem;
-  color: var(--muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  border-radius: 0;
-}
-
-.sidebar-up:hover {
-  color: var(--text);
-}
-
-.sidebar-up:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-/* ── Sidebar body/foot ──────────────────────────────────
-   AppSidebar renders these slots unwrapped, so the shell styles its own content. */
-.sidebar-body {
-  flex-shrink: 0;
-}
-
-.sidebar-foot {
-  flex-shrink: 0;
-  margin: 0;
-  /* Extra bottom space keeps the wallet control clear of the shell footer's border. */
-  padding: var(--space-xs) var(--space-sm) calc(var(--space-xs) + 0.5rem);
-  border-top: 1px solid var(--_border);
-  color: var(--_muted);
-  font-size: var(--font-size-sm);
-}
-
-.wallet-connected {
+.foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.wallet-disconnect {
-  background: none;
-  border: none;
-  padding: 0;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-top: 1px solid var(--border);
   color: var(--muted);
-  font-size: 0.8rem;
-  cursor: pointer;
-  white-space: nowrap;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.wallet-disconnect:hover {
-  color: var(--text);
-}
-
-.wallet-disconnected {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.8rem;
-  color: var(--muted);
-}
-
-/* Decorative status dot (the text states the status). */
-.wallet-disconnected::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--muted, #666);
-  flex-shrink: 0;
+  font-size: var(--font-size-sm);
 }
 </style>

@@ -24,14 +24,17 @@ Sidebar mode is local UI state (`sidebarView: 'top' | 'blockchain'`), not a rout
 *Blockchain* while already on `/blockchain` just re-opens the selector (no reload); *up one level*
 only changes the sidebar. Legacy per-tool paths (`/walrus`, …) redirect to `/blockchain`.
 
-**DAO is temporarily retired** from the dashboard: its route is commented out in `router/index.ts`
-and the `@meddleware/dao-ui` dependency is **retained** so it can be re-enabled once DAO
-participation ships. Do not remove the dependency.
+**DAO is retired** from the dashboard until governance is usable: there is no route for it and `@meddleware/dao-ui` is not a
+dependency (it was removed unused on 2026-10-31; add it back with the route when DAO participation ships).
+
+Navigation is real links (`SidebarItem href` through `RouterLink custom`), so it opens in a new tab and works without script. Below 45em the
+sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHeader sidebar-id="main-nav"`). Each route has a visually hidden
+`h1` (`route.meta.title`); the tools bring their own `h2`.
 
 ## Architectural invariants
 
 - **No on-chain logic here — extend the domain client.** `suiBoundary()` from
-  `@meddleware/eslint-config` (the last entry in `eslint.config.ts`) forbids, in `src/` outside
+  `@meddleware/eslint-config` (appended by `vueApp({ sui: true })` in `eslint.config.ts`) forbids, in `src/` outside
   `src/wallet.ts`: value imports of `@mysten/sui/{grpc,client,transactions}` (type-only imports are
   fine; `@mysten/sui/jsonRpc` is banned outright), building transactions and chain reads. URL
   bindings on native elements must go through `safeHref`, `safeIcon`, `suiExplorerUrl` or
@@ -48,12 +51,13 @@ participation ships. Do not remove the dependency.
   tool's deps (incl. the Walrus wasm) load only on navigation.
 - **No accounting logic.** Financial truth lives on-chain; this app derives none of it.
 - **Shell slots are unwrapped.** `AppHeader`/`AppSidebar`/`AppFooter` render slot content directly,
-  so the shell styles its own pieces (e.g. `.sidebar-foot`, `.sidebar-body` in `App.vue`).
+  so the shell styles its own pieces (e.g. `.foot` in `App.vue`). The frame is `UiAppShell` (skip link, `<main>`); the page scrolls, the tool
+  tabs stay under the sticky header, and the shell uses only token roles (no ui-private `--_*` variables).
 - **Sidebar navigation components come from `@meddleware/ui`.** Use `SidebarItem` for entries
   (and `SidebarGroup` if a mode ever needs grouped headers). Do not create local copies. The
   sidebar renders one of two modes (see IA above): top-level org sections, or the Blockchain
-  chain-selector. Onboarding a new chain = a new entry in `ChainSelector`'s `CHAINS` array plus a
-  new tool set in `BlockchainView`'s `TOOLSETS` — no shell changes.
+  chain-selector. Onboarding a new chain = a new entry in `src/chains.ts` plus a new tool set in
+  `BlockchainView`'s `TOOLSETS` — no shell changes (`App.vue` passes the chosen chain to the view).
 - **qt-style tabbed tools.** The Blockchain view uses the shared `AppTabNav variant="raised"`
   (WAI-ARIA tabs) with a `UiTabPanel` around the lazy, kept-alive tool views. Do not give each tool its own route;
   they are tabs within `/blockchain`.
@@ -79,9 +83,11 @@ contract with design-tokens — no `--warning` text colour, no undefined custom 
 (`tests/design-tokens-used.test.ts`), the build-input inventory — Dockerfile ARGs, `.env.example` and the
 release build-args stay in step and no access-gate price variable exists (`tests/build-inputs.test.ts`),
 the inline-script guard (`tests/inline-scripts.test.ts`) and the release-gate contract
-(`tests/workflows.test.ts`). `npm run test:e2e` (Playwright, Chromium
-installed with `npx playwright install chromium`) builds the app, serves `dist` and mounts `/`, every
-tool tab of `/blockchain` and the legacy redirects with all external requests refused. `npm run check:dist`
+(`tests/workflows.test.ts`). `npm run test:e2e` (Playwright; Chromium locally, five browsers in CI with
+`E2E_BROWSERS=all`) builds the app in e2e mode (`npm run build:e2e`: a mock wallet and an empty stub chain, `src/e2e.ts`, refused in any
+other mode), serves `dist` and mounts `/`, every tool tab of `/blockchain` (disconnected and connected) and the legacy redirects with all
+external requests refused, then runs the shared accessibility sweep (`e2e/a11y.spec.ts`: every route and tool in every colour mode × season,
+reflow with the drawer at 320 px, text size, forced colours, keyboard). `npm run lhci` runs Lighthouse. `npm run check:dist`
 fails if a built page has an inline script (the CSP refuses it). CI (`node-ci.yml`) runs all of these, and
 both release workflows call it. CI also builds the image and probes the running container
 (`scripts/smoke.sh <image>`; `CONTAINER_ENGINE=podman` for rootless podman) and runs a Trivy filesystem scan.

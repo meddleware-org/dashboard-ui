@@ -4,3 +4,6 @@ test-results/
 playwright-report/
 coverage/
 .env*.local
+
+# Lighthouse CI
+.lighthouseci/

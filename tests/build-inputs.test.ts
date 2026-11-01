@@ -47,7 +47,8 @@ describe('Dockerfile build inputs', () => {
   })
 
   it('accepts every VITE_* variable the shell itself reads, and documents it', () => {
-    const own = viteNames(sourceText(join(root, 'src')))
+    // VITE_E2E is not a setting: it is the end-to-end build mode's own switch (guarded in vite.config.ts), so it is neither documented nor an arg.
+    const own = viteNames(sourceText(join(root, 'src'))).filter((name) => name !== 'VITE_E2E')
     expect(own).toEqual(expect.arrayContaining(['VITE_DOCS_URL', 'VITE_DEV_URL']))
     // VITE_DOCS_URL / VITE_DEV_URL are shell-only (not Docker build args): they appear in .env.example.
     expect(own.filter((name) => !viteNames(envExample).includes(name))).toEqual([])

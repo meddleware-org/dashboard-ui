@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.94] - 2026-11-01
+
+- Shared shell, sidebar drawer on phones, tools updated, accessibility gates
+
 ## [0.1.93] - 2026-10-30
 
 - Dependency updates (minor and patch groups) and workflow action bumps. No source change.

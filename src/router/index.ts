@@ -12,21 +12,16 @@ const router = createRouter({
     {
       path: '/',
       name: 'treasury',
+      meta: { title: 'Treasury' },
       component: () => import('@meddleware/treasury-ui').then((m) => m.TreasuryView),
     },
     {
       path: '/blockchain',
       name: 'blockchain',
+      meta: { title: 'Blockchain tools' },
       component: () => import('../views/BlockchainView.vue'),
     },
-    // DAO is temporarily retired from the dashboard (the @meddleware/dao-ui dependency is
-    // retained). Re-enable this route once DAO participation ships so users aren't shown a
-    // governance surface they can't yet act on.
-    // {
-    //   path: '/dao',
-    //   name: 'dao',
-    //   component: () => import('@meddleware/dao-ui').then((m) => m.DaoView),
-    // },
+    // DAO is retired from the dashboard until governance is usable: there is no route for it (the dao-ui package is not a dependency).
 
     // Legacy per-tool paths now live as tabs inside /blockchain — redirect old bookmarks.
     { path: '/walrus', redirect: '/blockchain' },
