@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.95] - 2026-11-05
+
+### Fixed
+
+- The Blockchain view's tab strip sits under the header's real height and publishes its own offset (`--mw-sticky-extra`), so focus is not hidden behind the sticky header and strip (WCAG 2.4.11).
+
+### Security
+
+- CI and the image build scan the production bundle for the e2e harness (`check-prod-bundle` from `@meddleware/frontend-config`), and `src/e2e*.ts` is no longer in the published package.
+
+### Changed
+
+- Takes the embedded tools' 2026-11-05 releases (access-gate-ui 0.1.45, sealed-storage-ui 0.0.46, token-issuance-ui 0.0.44, treasury-ui 0.0.25, walrus-storage-ui 0.1.67) and `@meddleware/ui` ^0.1.38, `@meddleware/design-tokens` ^0.1.13, `@meddleware/web-utils` ^0.0.2, `@meddleware/frontend-config` ^0.0.2, `@meddleware/wallet-adapter` ^0.0.21.
+
 ## [0.1.94] - 2026-11-01
 
 - Shared shell, sidebar drawer on phones, tools updated, accessibility gates
