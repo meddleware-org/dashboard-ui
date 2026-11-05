@@ -3,7 +3,7 @@
 // chain is Sui; the `chain` prop is the sidebar's choice, so a second chain switches the tool set without a rewrite. Each tool view is lazy-loaded (its deps, incl. the Walrus
 // wasm, load only when its tab is first opened) and kept alive so switching tabs preserves state.
 import { computed, defineAsyncComponent, ref, watch } from 'vue'
-import { AppTabNav, UiTabPanel, type AppTab } from '@meddleware/ui'
+import { AppTabNav, UiTabPanel, useStickyOffset, type AppTab } from '@meddleware/ui'
 
 import { CHAINS, DEFAULT_CHAIN } from '../chains.js'
 
@@ -37,12 +37,16 @@ watch(
 )
 
 const activeComp = computed(() => tools.value.find((t) => t.id === active.value)?.comp)
+
+// The tab strip sticks under the header: publish its height so a focused field is never left behind either of them (WCAG 2.4.11).
+const strip = ref<{ $el?: unknown } | null>(null)
+useStickyOffset(strip, '--mw-sticky-extra')
 </script>
 
 <template>
   <section aria-labelledby="blockchain-title" class="blockchain-view">
     <h2 id="blockchain-title" class="mw-visually-hidden">{{ chainLabel }} tools</h2>
-    <AppTabNav v-model="active" :tabs="tabs" id-prefix="blockchain" variant="raised" size="lg" flush class="tabs" :aria-label="`${chainLabel} tools`" />
+    <AppTabNav v-model="active" :tabs="tabs" id-prefix="blockchain" variant="raised" size="lg" flush ref="strip" class="tabs" :aria-label="`${chainLabel} tools`" />
 
     <UiTabPanel id-prefix="blockchain" :tab="active" class="content">
       <KeepAlive>
@@ -59,10 +63,11 @@ const activeComp = computed(() => tools.value.find((t) => t.id === active.value)
   min-height: 0;
 }
 
-/* The tool tabs stay in view under the sticky header while the page scrolls. */
+/* The tool tabs stay in view under the sticky header while the page scrolls: under its real height, which is more than its minimum when
+   the header wraps on a phone. */
 .tabs {
   position: sticky;
-  top: var(--mw-header-height);
+  top: var(--mw-header-offset, var(--mw-header-height));
   z-index: var(--z-raised);
   background: var(--bg);
 }

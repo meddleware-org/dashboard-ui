@@ -15,7 +15,8 @@
     "index.html",
     "vite.config.ts",
     "tsconfig.json",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "!src/e2e*.ts"
   ],
   "scripts": {
     "dev": "vite",
@@ -34,7 +35,8 @@
     "check:licenses": "node scripts/third-party-licenses.mjs --check",
     "check:dist": "node scripts/check-inline-scripts.mjs",
     "shots": "SHOTS=1 playwright test",
-    "lhci": "npm run build && lhci autorun"
+    "lhci": "npm run build && lhci autorun",
+    "check:bundle": "check-prod-bundle dist"
   },
   "publishConfig": {
     "access": "public"
