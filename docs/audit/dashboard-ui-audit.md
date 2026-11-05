@@ -3,7 +3,7 @@
 **Classification:** Internal security review
 **Project:** `repos/dashboard-ui` — `@meddleware/dashboard-ui`, Vue 3 hub (`dash.meddleware.co.uk`) hosting the tool views inline: Treasury at `/`, and Walrus Storage, Sealed Storage, Access Gate and Token Issuance as tabs at `/blockchain`
 **Project type:** Vue app
-**Template:** AUDIT_TEMPLATE.md (2026-10-08) + AUDIT_TEMPLATE_TS.md (2026-10-08) + AUDIT_TEMPLATE_VUE.md (2026-10-08) + AUDIT_TEMPLATE_IMG.md (2026-10-08). `AUDIT_TEMPLATE_SUI_CLIENT.md` is not triggered: the shell builds no PTBs, reads no Move objects or events and verifies no signatures — `suiBoundary()` (eslint-config 0.0.2) fails CI on any such code in `src/`; the chain surface lives in the embedded tools and their clients (own audits).
+**Template:** AUDIT_TEMPLATE.md (2026-11-01) + AUDIT_TEMPLATE_TS.md (2026-11-01) + AUDIT_TEMPLATE_VUE.md (2026-11-01) + AUDIT_TEMPLATE_IMG.md (2026-10-08) + AUDIT_TEMPLATE_A11Y.md (2026-11-01). `AUDIT_TEMPLATE_SUI_CLIENT.md` is not triggered: the shell builds no PTBs, reads no Move objects or events and verifies no signatures — `suiBoundary()` (eslint-config 0.0.2) fails CI on any such code in `src/`; the chain surface lives in the embedded tools and their clients (own audits).
 **Sui SDK:** `@mysten/sui ^2.36.0` (one copy, resolves 2.36.0)   **Transport:** through the embedded tools and wallet-adapter
 **Package manager / lockfile:** npm 11, committed (453 locked packages; 127 production)   **Publish model:** ships source + SPA image
 **Runtime targets:** browser
@@ -15,7 +15,7 @@
 **Deployed by:** `post-bootstrap/dashboard-ui/overlays/default` (digest from `config/images.yaml`)
 **Build args:** the `VITE_*` list above and `CSP` — public configuration, none secret
 **Deployment status:** npm v0.1.85 (2026-10-18, trusted publishing); image `quay.io/meddleware-org/dashboard-ui` serving `dash.meddleware.co.uk` at 0.1.85 (`sha256:3696a6ac…c04f`; release tag `v0.1.85` = `c81fb02`, Publish run 39138496552; released, signature verified against the workflow-anchored identity (`verify-digests.sh` 16/16) and deployed 2026-10-18, rollout succeeded; 0.1.84 was deployed 2026-10-09; live headers on `/` re-checked 2026-10-18)
-**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-03 · re-verified 2026-10-09 · fix wave 2026-10-18 (0.1.85, released and deployed); 0.1.92 re-verified 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages); 0.1.93 re-verified 2026-10-30 (Dependency updates (minor and patch groups) and workflow action bumps); 0.1.94 re-verified 2026-11-01 (Shared shell, sidebar drawer on phones, tools updated, accessibility gates)
+**Review date:** 2026-09-18 (first pass) · re-verified 2026-10-03 · re-verified 2026-10-09 · fix wave 2026-10-18 (0.1.85, released and deployed); 0.1.92 released 2026-10-30 (Point the developer-docs and indexer links at the machine zone (ADR-0005); current @meddleware packages); 0.1.93 released 2026-10-30 (Dependency updates (minor and patch groups) and workflow action bumps); 0.1.94 released 2026-11-01 (Shared shell, sidebar drawer on phones, tools updated, accessibility gates); frontend-wave delta review 2026-11-01 (real review of the 2026-10-19 → 2026-11-01 changes; see the delta section)
 **Reviewer:** Internal review
 **Severity ceiling:** Medium — it owns the one wallet connection every embedded tool signs through, so its ceiling is the union of the tools' signing surfaces. No High or Critical in dashboard code.
 **Status:** fix wave 2026-10-18 (0.1.85, released and deployed 2026-10-18; signature verified, rollout succeeded) — 20 findings (2 Positive): 15 RESOLVED, 1 ADJUDICATED, 1 ACCEPTED-RISK, 1 DEFERRED
@@ -68,6 +68,8 @@ No High or Critical. The posture is unchanged: the shell is thin, and its main c
 chain of the packages it mounts next to one wallet, which is now covered by the audit gate,
 signature and provenance verification, a single copy of each shared package, an inline-script guard, an
 image probe and a CI release gate equal to branch CI for both the image and the npm package.
+
+**2026-11-01 update.** The shell was rebuilt on the shared components with a drawer sidebar and an end-to-end build. The review found that nothing inspected the production build for the harness (F21), that the tarball carried it (F22), and that the tool tab strip was a second sticky layer unknown to the scroll padding (F23); all are fixed in 0.1.95 with ui 0.1.38. The drawer, one-wallet and sweep properties hold (F24, F25).
 
 ## Threat model / trust boundaries
 
@@ -384,6 +386,47 @@ that no uncaught page error occurs (3 tests, PASS 2026-10-18). `npm test` (vites
 route table and lazy tool imports, the network selector's mainnet guard (I7), design-token use, the build
 inputs, the inline-script check and the release-gate workflows. Both run in `node-ci.yml`.
 
+### Frontend wave delta review (2026-11-01) — 0.1.92 to 0.1.94 reviewed · 0.1.95 prepared
+
+Scope: the changes since the last substantive entry (2026-10-24, which logged the rename, the runtime endpoint config and the embedded tools' releases): `App.vue` rebuilt on `UiAppShell` (351 lines changed) with the sidebar as a Popover-API drawer on phones, `ChainSelector` and `NetworkSelector` simplified, `chains.ts`, the Blockchain view's tab strip, the end-to-end build mode (`src/e2e.ts`: a mock wallet and an empty stub chain, so every embedded tool can be checked connected), the embedded tools at their frontend-wave releases, and the seven-state sweep. The release tool's "re-verified" marks for these releases recorded no review; this section is the review. Read: `App.vue`, `BlockchainView.vue` (the sticky tab strip), `main.ts`, `router/index.ts`, `e2e.ts`, `scripts/check-inline-scripts.mjs` (the CSP build check), `vite.config.ts`, the Dockerfile and its CSP, the workflows and the tests. Ran (with the locally packed `ui` 0.1.38, `design-tokens` 0.1.13, `web-utils` 0.0.2, `frontend-config` 0.0.2): the audit gate (0 not allowlisted; the two `extract-zip` advisories are allowlisted until 2027-01-31), `vue-tsc`, lint (stylelint, eslint, html-validate), `vitest` (6 files, 67 tests), the production build and `check:dist` (no inline script or handler in any built page: the image serves `script-src 'self' 'wasm-unsafe-eval'`), `check:bundle` on that build (no e2e hook), `npm pack --dry-run` (13 files, 26 KiB, no e2e file), and the browser suite on Chromium, Firefox, WebKit, a Pixel 7 and an iPhone 14 with the CI font (DejaVu Sans through fontconfig): **550 passed in 13.2 minutes**.
+
+### F21 — No production-artefact scan for the end-to-end harness
+**Severity:** Medium   **Disposition:** RESOLVED
+**Where:** `package.json` (`check:dist` covered inline scripts only), `Dockerfile`, `.github/workflows/node-ci.yml`.
+**Issue:** the dashboard's e2e build registers a mock wallet and an empty stub chain. The controls were the entry's static condition (`MODE === 'e2e' && VITE_E2E === '1'`) and `assertE2eOnlyInE2eMode`; `check:dist` looks for inline scripts (the CSP), not for the harness. Nothing inspected the built output for the hooks (base §B.2 *Test-only modes*, VUE §A *Test hooks*). The dashboard is the app that embeds all four tools and holds one shared wallet, so a mock wallet there would sit beside real ones.
+**Impact:** a later change to the entry file, a bundler upgrade that stops folding the static condition, or a mis-set mode in an image build would ship a mock wallet in a signing app and nothing but a reviewer would notice
+**Remediation / evidence:** the shared `check-prod-bundle` of `@meddleware/frontend-config` 0.0.2 runs after the production build in `node-ci.yml` and in the Dockerfile (`RUN npm run build && npm run check:dist && npm run check:bundle && npm run licenses`); a CI step runs `VITE_E2E=1 vite build` in production mode and fails the job if it succeeds. The production build is clean; the e2e build the browser suite leaves in `dist/` fails the scan on the wallet hooks. 0.1.95.
+
+### F22 — The published tarball carried the end-to-end modules
+**Severity:** Low   **Disposition:** RESOLVED
+**Where:** `package.json` `files` (`src`); the e2e module is `src/e2e.ts`.
+**Issue:** the package ships `src/` as a library, and `src/e2e.ts` — the mock wallet installer and its data — were in it. Nothing imports them from the library entry, but they are test-only code in a published artefact (TS lens B.TS-1; base §B.2 test-only modes).
+**Impact:** consumers download test doubles they never load; no behavioural impact
+**Remediation / evidence:** `"!src/e2e*.ts"` in `files` (`npm pack --dry-run`: 13 files, 26 KiB, no e2e file); `node-ci.yml` asserts that no packed file path matches `e2e`.
+
+### F23 — The tool tab strip stuck at the header's minimum height and was not accounted for in the scroll padding
+**Severity:** Low   **Disposition:** RESOLVED
+**Where:** `src/views/BlockchainView.vue` (`.tabs { position: sticky; top: var(--mw-header-height) }`)
+**Issue:** the strip of tool tabs sticks under the sticky header while the page scrolls. It was placed at the header's *minimum* height (56 px), and the header wraps to 113–131 px on a phone, so the strip overlapped the header; and neither layer was known to the scroll padding, so a field or tab reached with Shift+Tab sat behind the strip (found by the shared keyboard pass on the iPhone project: `input#price` and `button#seal-tab-encrypt` behind `button.mw-tab-nav__tab`).
+**Impact:** keyboard and magnifier users on a phone lose the focused control in all four embedded tools.
+**Remediation / evidence:** the strip sticks under the header's published height (`top: var(--mw-header-offset, var(--mw-header-height))`) and publishes its own (`useStickyOffset(strip, '--mw-sticky-extra')` from `@meddleware/ui` 0.1.38, its F26), which the reset adds to the scroll padding. Passes on the WebKit, iPhone and Firefox projects. The design-token test of this repository now allows those two run-time published properties, and only with a token as the fallback (a test case enforces it). 0.1.95.
+
+### F24 — Positive: the drawer and the one-wallet shell behave: Escape and focus return are the platform's, and one connection serves all four tools
+**Severity:** Positive
+**Where:** `src/App.vue`, `e2e/routes.spec.ts`
+**Evidence:** the sidebar is a `popover` opened from the header's menu button (ui F16: Escape closes it, focus returns to the button on five browsers); the `walrus (connected)` and `access gate (connected)` states connect the mock wallet once through the shared dialog and sweep the embedded tool with it; the route-mount tests (`routes.spec.ts`) check landmarks, one level-1 heading, the retired per-tool paths and that no uncaught page error occurs on any route on five browsers (these caught the first, buggy version of ui's header observer in WebKit: ui F24).
+
+### F25 — Positive: the shared sweep covers every screen and passes on five browsers with the CI font
+**Severity:** Positive
+**Where:** e2e/a11y.spec.ts (`defineA11ySuite`, AAA `gate`)
+**Evidence:** seven states — the Treasury view, the four tools (Walrus Storage, Sealed Storage, Access Gate, Token Issuance) disconnected, and Walrus Storage and Access Gate connected — each at AA and AAA (gating) in all ten theme × season looks, at 320 px (the sidebar becomes a drawer), 200% text, in forced colours, under reduced motion and by keyboard, plus the route-mount tests, on five browser projects: 550 tests passed with the CI font.
+
+### Delta notes (A11Y lens, `AUDIT_TEMPLATE_A11Y.md`)
+- **Support promise:** the shared browserslist (`@meddleware/frontend-config/browserslist-config`); build target through `viteTarget()`; compat lints on.
+- **Accessibility gates:** the shared sweep over seven states (axe AA and AAA `gate`; 320 px reflow; 200% text; forced colours; reduced motion; keyboard incl. focus not obscured), the route tests, Lighthouse CI on the production build, `check:dist` for the CSP, five browser projects in CI. Each embedded tool's own flows are swept in its own repository.
+- **Known exceptions:** none disabled; the 44 px enhanced target size, link purpose, reading order and screen-reader announcements are reviewed from screenshots (`npm run shots`), not automated.
+- **Supply chain:** `.github/audit-gate.mjs` with two dated `extract-zip` allowlist entries (dev-only, via `@lhci/cli`, expiry 2027-01-31, D104; OPERATOR_TASKS.md) and the `basic-ftp`/`tmp`/`zod` overrides; Dependabot (npm, Actions, Docker); `@meddleware/frontend-config` is a dev dependency (its audit F5).
+
 ## Section A — Invariant verification matrix
 
 | # | Invariant | Enforced at | Proven by | Status |
@@ -615,3 +658,4 @@ run of the shell and no production-artifact scan for test hooks exist here becau
 - 2026-10-24 — repository renamed from `dashboard` to `dashboard-ui` (workspace naming convention, `docs/architecture/ADR-0003-naming.md`): package, image, host and path names updated throughout. No finding, disposition or evidence changed.
 - 2026-10-24 — machine-zone readiness (workspace ADR-0005, C1z): endpoints read through `@meddleware/ui` `withRuntimeEnv`, loaded from a same-origin `/runtime-config.json` (strict key allowlist, https-only, no credentials/query/fragment; a missing, non-JSON or invalid file keeps the build values) before the app modules load; own `robots.txt` and `llms.txt`. Verified: one build served by static-server 0.1.11 with and without the file calls the configured indexer / falls back, 0 CSP violations, 0 page errors (headless Chromium).
 - 2026-10-24 — embedded tools at their C0c/C1z releases (walrus-storage-ui 0.1.63, sealed-storage-ui 0.0.42, token-issuance-ui 0.0.40, treasury-ui 0.0.21, dao-ui 0.1.37, access-gate-ui 0.1.41): v3 access proofs, access_gate v2 published-at, runtime endpoint config through the shared `@meddleware/ui` store (verified: the published build calls the runtime-configured indexer, 0 CSP violations). 65 tests pass.
+- 2026-11-01 — frontend-wave delta review of 0.1.92 to 0.1.94. Read the shell and drawer, the Blockchain view and its sticky strip, the e2e harness, the CSP build check, build configuration, workflows and Dockerfile; ran the gates and the five-browser suite with the CI font (550 passed in 13.2 minutes). Found and fixed F21 (no production-artefact scan for the e2e harness), F22 (the e2e module in the published tarball) and F23 (the tab strip stuck at the header's minimum height and hid focus: ui F26); F24–F25 recorded as Positive. The route tests caught the first version of ui's header observer in WebKit (ui F24). The release tool's bare "re-verified" marks were reworded to "released". `**Template:**` dates reconciled to the 2026-11-01 registry (TS/VUE changes add rows; the VUE colour row moved to A11Y, applied in full here) with no disposition change.

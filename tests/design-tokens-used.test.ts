@@ -27,6 +27,10 @@ function sourceFiles(dir: string): string[] {
 // content to read; they are that component contract, not design tokens.
 const PANEL_PRIVATE = /^--_(muted|border)$/
 
+// Properties `@meddleware/ui` publishes on <html> at run time (`useStickyOffset`: the sticky header's real height, a second sticky layer's):
+// they are not tokens and do not exist until a component measures itself, so the shell may read them only with a token as the fallback.
+const RUNTIME_PUBLISHED = ['--mw-header-offset', '--mw-sticky-extra']
+
 const files = sourceFiles(join(import.meta.dirname, '..', 'src'))
 
 describe('design tokens in the shell styles', () => {
@@ -43,6 +47,15 @@ describe('design tokens in the shell styles', () => {
     const css = readFileSync(file, 'utf8')
     const own = declared(css)
     const used = [...css.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]!)
-    expect(used.filter((name) => !defined.has(name) && !own.has(name) && !PANEL_PRIVATE.test(name))).toEqual([])
+    const known = (name: string) => defined.has(name) || own.has(name) || PANEL_PRIVATE.test(name) || RUNTIME_PUBLISHED.includes(name)
+    expect(used.filter((name) => !known(name))).toEqual([])
+  })
+
+  it.each(files)('%s reads a run-time published property only with a fallback', (file) => {
+    const css = readFileSync(file, 'utf8')
+    for (const name of RUNTIME_PUBLISHED) {
+      const bare = new RegExp(`var\\(\\s*${name}\\s*\\)`)
+      expect(css, `${name} needs a fallback`).not.toMatch(bare)
+    }
   })
 })
