@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.97] - 2026-11-06
+
+### Changed
+
+- Takes the embedded tools' 2026-11-06 releases (access-gate-ui 0.1.47, sealed-storage-ui 0.0.47, token-issuance-ui 0.0.45, treasury-ui 0.0.26 — now swept with data in its own end-to-end build —, walrus-storage-ui 0.1.68), `@meddleware/ui` ^0.1.39, and the Dependabot merges of 2026-11-06 (image bases, dev tools). Adds a README and a `LICENSE`.
+
 ## [0.1.96] - 2026-11-06
 
 ### Changed
