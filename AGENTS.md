@@ -5,7 +5,7 @@ See [CLAUDE.md](CLAUDE.md) for architecture and scope constraints.
 ## Quick commands
 
 ```bash
-npm install          # install deps (requires @meddleware/ui ^0.1.3 on npmjs or npm link)
+npm install          # install deps (every @meddleware/* range in package.json must be published on npmjs, or npm link / a local pack)
 npm run dev          # dev server at http://localhost:5173
 npm run type-check   # TypeScript check only
 npm test             # unit tests (vitest)

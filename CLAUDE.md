@@ -97,7 +97,7 @@ access-gate price is read from the chain (walrus-storage-kit 0.1.31); there is n
 
 ## Dependency order
 
-`@meddleware/ui ^0.1.3` must be published to npmjs before this image can be built from npm.
+Every `@meddleware/*` dependency (the shared packages and the five embedded tool packages) must be published to npmjs at the version `package.json` names before this image can be built: release in tier order and bump the ranges after each publish (workspace `PUBLISHING.md`).
 For local development:
 
 ```bash
