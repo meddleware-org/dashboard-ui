@@ -553,7 +553,7 @@ run of the shell and no production-artifact scan for test hooks exist here becau
 - [ ] mainnet enabled in the network selector once the packages and gate exist — mainnet-blocked; the selector opens mainnet by itself once both deployment records (access gate, seal policies) have a `mainnet` key (0.1.98), so no dashboard edit is needed (access_gate and seal_policies mainnet release: `OPERATOR_TASKS.md` "Mainnet release custody")
 - [ ] token publishing disallowed on every `@meddleware/*` package (OQ3) — maintainer-only (`OPERATOR_TASKS.md` "npm housekeeping")
 - [ ] registry credential scope and rotation recorded (F17) — maintainer-only (`OPERATOR_TASKS.md` "Image registry credentials")
-- [ ] external review of the shared-wallet surface — mainnet-blocked (`OPERATOR_TASKS.md` "Funding, grants and an external audit")
+- [ ] external review (ADR-0009 gate G4: not a launch gate; covered by redeploy and the audit pass) of the shared-wallet surface — mainnet-blocked (`OPERATOR_TASKS.md` "Funding, grants and an external audit")
 
 ## Cross-project themes
 
