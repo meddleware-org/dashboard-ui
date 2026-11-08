@@ -65,6 +65,26 @@ test('the sidebar is real links, and Back returns to the organisation sections w
   await expect(page).toHaveURL(/\/blockchain$/)
 })
 
+test('mainnet is offered only when the records make it live, and a stored mainnet choice goes back to testnet until then', async ({ page }) => {
+  const errors = await watch(page)
+  await page.addInitScript(() => localStorage.setItem('mw:network', 'mainnet'))
+  await tool('Walrus Storage', true)(page)
+  await openNav(page)
+  const select = page.getByRole('combobox', { name: 'Network' })
+  const mainnet = select.locator('option[value="mainnet"]')
+  await expect(select.locator('option[value="testnet"]')).toBeEnabled()
+  await expect(select.locator('option[value="localnet"]')).toBeEnabled()
+  if (await mainnet.isDisabled()) {
+    // Not live: the option says why, and the stored choice was reset.
+    await expect(mainnet).toHaveAttribute('title', /^Mainnet is (coming|not open yet\. Still missing: .+\.)$/)
+    await expect(select).toHaveValue('testnet')
+  } else {
+    await expect(mainnet).not.toHaveAttribute('title')
+    await expect(select).toHaveValue('mainnet')
+  }
+  expect(errors).toEqual([])
+})
+
 test('the retired per-tool paths land on /blockchain', async ({ page }) => {
   const errors = await watch(page)
   for (const path of ['/walrus', '/walrus-storage', '/sealed-storage', '/access-gate', '/token-deployer', '/token-issuance']) {

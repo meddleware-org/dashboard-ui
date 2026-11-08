@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.98] - 2026-11-08
+
+### Changed
+
+- The network selector reads the deployment records instead of a hard-coded option: Mainnet is selectable only when every hosted product (Access Gate, Sealed Storage) has a mainnet record, and until then it reads "Mainnet (not open yet)" with a tooltip that says what is missing or that mainnet is coming. A stored mainnet choice goes back to testnet only while mainnet is not open, with or without a wallet connected.
+- Token Issuance no longer carries a committed mainnet fee address: `.env.production` holds testnet only and the mainnet treasury is an optional build argument, so Token Issuance stays closed on mainnet until the build is given one.
+- Takes the embedded tools' 2026-11-07 releases (access-gate-ui 0.1.48, sealed-storage-ui 0.0.48, token-issuance-ui 0.0.46, treasury-ui 0.0.27, walrus-storage-ui 0.1.69), `@meddleware/wallet-adapter` ^0.0.22 (one copy, shared by all five), `@meddleware/ui` ^0.1.40, `@meddleware/web-utils` ^0.0.4 and `@meddleware/frontend-config` ^0.0.7. The explorer link beside the connected address uses wallet-adapter's `explorerNetwork`.
+- Describes the app for the people who use it (five tools, one wallet connection) in `package.json`, the README, `index.html` and CLAUDE.md.
+
+### Internal
+
+- Shared tooling replaces the local copies: `mw-audit-gate`, `mw-third-party-licenses` and `mw-check-csp-inline` (the `check:dist` script is now `check:csp`, which checks inline scripts against the Dockerfile's CSP by hash), `meddlewareApp`, `vueTestConfig` and the shared tsconfig base. `mw-sync --check` runs in CI; the `chain-wasm` CSP profile is configured in `package.json`.
+- New dependencies `@meddleware/access-gate-client` and `@meddleware/sealed-storage-client` (their deployment records feed the selector). New tests for the availability, the selector and the stored-network guard with the records mocked, and an end-to-end check of the selector.
+
 ## [0.1.97] - 2026-11-06
 
 ### Changed

@@ -30,6 +30,8 @@ ARG VITE_ACCESS_GATE_ID_TESTNET
 ARG VITE_ACCESS_GATE_SOULBOUND_TESTNET
 ARG VITE_ACCESS_GATE_ID_MAINNET
 ARG VITE_UPLOAD_RELAY_MAX_TIP_MIST
+# Token Issuance fee treasury for mainnet (optional: without it Token Issuance stays closed on mainnet; no default is committed).
+ARG VITE_FEE_TREASURY_MAINNET
 # Read-indexer base URL for the embedded history views (optional; display data, falls back to the
 # full node).
 ARG VITE_INDEXER_URL
@@ -43,10 +45,13 @@ ENV VITE_NETWORK=${VITE_NETWORK} \
     VITE_ACCESS_GATE_SOULBOUND_TESTNET=${VITE_ACCESS_GATE_SOULBOUND_TESTNET} \
     VITE_ACCESS_GATE_ID_MAINNET=${VITE_ACCESS_GATE_ID_MAINNET} \
     VITE_UPLOAD_RELAY_MAX_TIP_MIST=${VITE_UPLOAD_RELAY_MAX_TIP_MIST} \
+    VITE_FEE_TREASURY_MAINNET=${VITE_FEE_TREASURY_MAINNET} \
     VITE_INDEXER_URL=${VITE_INDEXER_URL}
 
+RUN npm run build && npm run check:bundle && npm run licenses
+ARG CSP
 # The CSP has no 'unsafe-inline' for scripts: the build fails if dist/ ever carries an inline <script>.
-RUN npm run build && npm run check:dist && npm run check:bundle && npm run licenses
+RUN npx mw-check-csp-inline "${CSP}" dist
 
 # ── runtime stage ─────────────────────────────────────────────────────────────
 # static-server is a minimal Go binary image. SPA_FALLBACK serves index.html

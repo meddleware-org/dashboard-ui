@@ -17,7 +17,8 @@ describe('CI (node-ci.yml)', () => {
   })
 
   it.each([
-    'node .github/audit-gate.mjs',
+    'npx mw-audit-gate',
+    'npx mw-sync --check',
     'npm audit signatures',
     'npm run type-check',
     'npm run lint:css',
@@ -25,7 +26,7 @@ describe('CI (node-ci.yml)', () => {
     'npm run lint:html',
     'npm test',
     'npm run build',
-    'npm run check:dist',
+    'npm run check:csp',
     'npm run check:licenses',
     'npm run test:e2e',
     'bash scripts/smoke.sh',
@@ -64,7 +65,7 @@ describe('release workflows', () => {
 
 describe('Dockerfile', () => {
   it('fails the image build on an inline script', () => {
-    expect(read('Dockerfile')).toMatch(/RUN npm run build && npm run check:dist/)
+    expect(read('Dockerfile')).toMatch(/RUN npx mw-check-csp-inline "\${CSP}" dist/)
   })
 
   it('runs as the unprivileged user', () => {

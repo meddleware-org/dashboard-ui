@@ -2,9 +2,9 @@
 
 ## What this app is
 
-A Vue 3 + Vite SPA serving as the organisation-level Meddleware hub at
-`dash.meddleware.co.uk`. It renders each tool/view inline by importing the exported component
-from its own package (e.g. `TreasuryView` from `@meddleware/treasury-ui`, `WalrusStorageView` from
+A Vue 3 + Vite SPA serving as the Meddleware dashboard at `dash.meddleware.co.uk`: the one place a person uses the five tools (Treasury,
+Walrus Storage, Sealed Storage, Access Gate, Token Issuance) with one wallet connection. It renders each tool/view inline by importing the
+exported component from its own package (e.g. `TreasuryView` from `@meddleware/treasury-ui`, `WalrusStorageView` from
 `@meddleware/walrus-storage-ui`) and wrapping it in the dashboard shell.
 
 ### Information architecture (two org sections + a drill-down)
@@ -45,6 +45,15 @@ sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHe
   it. (This supersedes the earlier "no wallet" invariant, which applied when tools were external
   iframes.) The dashboard still performs no accounting and builds no transactions itself — the
   tool views own their signing flows.
+- **Which networks are offered comes from the deployment records.** `src/network.ts` computes
+  `networkAvailability({ 'access gate': Object.keys(ACCESS_GATE_DEPLOYMENTS), 'sealed storage': Object.keys(SEAL_POLICIES_DEPLOYMENTS) })`
+  (`@meddleware/web-utils`, records from `@meddleware/access-gate-client/deployments` and `@meddleware/sealed-storage-client/deployments`).
+  `NetworkSelector` enables the mainnet option only when that status is `live` (the tooltip names what is missing when `partial`, and says
+  "Mainnet is coming" when `coming`), and `keepToOpenNetwork()` (called by `App.vue`, with or without a wallet) resets a stored mainnet
+  choice to testnet only while mainnet is not live. Adding a `mainnet` key to both records is the whole switch; never hand-write a
+  disabled mainnet option or a sentence saying which network is live (the platform's mainnet-readiness structure check
+  fails on it). Token Issuance additionally keeps mainnet closed until the build carries `VITE_FEE_TREASURY_MAINNET` (no personal address is
+  committed as a default; `.env.production` holds testnet only).
 - **Tools render inline, not via iframe.** Import each tool's exported view component and render
   it in a route. Do not reintroduce cross-origin iframes (`X-Frame-Options` blocks them and
   wallet extensions don't inject into them). Tool routes are lazy (`() => import(...)`) so each
@@ -77,27 +86,54 @@ sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHe
 
 ## Tests and checks
 
-`npm test` (vitest, jsdom) pins the shell's contracts: the route table and tool imports
-(`tests/router.test.ts`), the network selector's mainnet guard (`tests/network-selector.test.ts`), the
+`npm test` (vitest, jsdom, `vueTestConfig` from `@meddleware/frontend-config`) pins the shell's contracts: the route table and tool imports
+(`tests/router.test.ts`), the network availability, the selector's mainnet option and the stored-network guard with the records mocked to
+prove the switch (`tests/network.test.ts`), the
 contract with design-tokens — no `--warning` text colour, no undefined custom property
 (`tests/design-tokens-used.test.ts`), the build-input inventory — Dockerfile ARGs, `.env.example` and the
 release build-args stay in step and no access-gate price variable exists (`tests/build-inputs.test.ts`),
-the inline-script guard (`tests/inline-scripts.test.ts`) and the release-gate contract
-(`tests/workflows.test.ts`). `npm run test:e2e` (Playwright; Chromium locally, five browsers in CI with
+and the release-gate contract (`tests/workflows.test.ts`). `npm run test:e2e` (Playwright; Chromium locally, five browsers in CI with
 `E2E_BROWSERS=all`) builds the app in e2e mode (`npm run build:e2e`: a mock wallet and an empty stub chain, `src/e2e.ts`, refused in any
 other mode), serves `dist` and mounts `/`, every tool tab of `/blockchain` (disconnected and connected) and the legacy redirects with all
 external requests refused, then runs the shared accessibility sweep (`e2e/a11y.spec.ts`: every route and tool in every colour mode × season,
-reflow with the drawer at 320 px, text size, forced colours, keyboard). `npm run lhci` runs Lighthouse. `npm run check:dist`
-fails if a built page has an inline script (the CSP refuses it). CI (`node-ci.yml`) runs all of these, and
+reflow with the drawer at 320 px, text size, forced colours, keyboard). `npm run lhci` runs Lighthouse. `npm run check:csp`
+(`mw-check-csp-inline`) fails if a built page has an inline script the Dockerfile's CSP does not allow by hash. CI (`node-ci.yml`) runs all of these, and
 both release workflows call it. CI also builds the image and probes the running container
 (`scripts/smoke.sh <image>`; `CONTAINER_ENGINE=podman` for rootless podman) and runs a Trivy filesystem scan.
 
 The embedded tools take no props: each reads its own `VITE_*` configuration at bundle time. The relay
 access-gate price is read from the chain (walrus-storage-kit 0.1.31); there is no price variable.
 
+## Shared tooling
+
+The audit gate (`mw-audit-gate`), licence notices (`mw-third-party-licenses`), the CSP check (`mw-check-csp-inline`), the Vite and Vitest
+configurations (`meddlewareApp`, `vueTestConfig`) and the tsconfig base come from `@meddleware/frontend-config`; there are no local copies.
+`package.json` `"meddleware": { "kind": "app", "csp": "chain-wasm", "lhci": true }` configures `npx mw-sync`, which keeps `.dockerignore`, the
+postcss and stylelint configs, `dependabot.yml`, the audit allowlist and the Dockerfile's `ARG CSP` equal to the shared templates: run
+`npx mw-sync --write` after a bump, `npx mw-sync --check` runs in CI. The CSP profile is `chain-wasm`: script-src is `'self'` plus
+`'wasm-unsafe-eval'` for the Walrus and Move WebAssembly.
+
+## Commands
+
+```bash
+npm ci
+npm run dev          # Vite dev server at http://localhost:5173
+npm run type-check
+npm test             # unit tests
+npm run test:e2e     # Playwright over the e2e build (E2E_BROWSERS=all for the five browsers)
+npm run build && npm run check:bundle && npm run check:csp && npm run check:licenses
+```
+
+## Adding a tool
+
+A tool of an existing chain is a new entry in `TOOLSETS` in `views/BlockchainView.vue` (an `id`, a `label`, a lazy import of the view from the
+tool's package), plus its package in `package.json` and a state in `e2e/open.ts` (`TOOLS`) and `e2e/a11y.spec.ts`. An organisation section
+(like Treasury) is a route in `router/index.ts` and a `SidebarItem` in `App.vue`. Either way the dashboard stays thin: no chain calls, no
+signing and no financial logic of its own.
+
 ## Dependency order
 
-Every `@meddleware/*` dependency (the shared packages and the five embedded tool packages) must be published to npmjs at the version `package.json` names before this image can be built: release in tier order and bump the ranges after each publish (workspace `PUBLISHING.md`).
+Every `@meddleware/*` dependency (the shared packages and the five embedded tool packages) must be published to npmjs at the version `package.json` names before this image can be built: release in tier order and bump the ranges after each publish.
 For local development:
 
 ```bash
@@ -109,7 +145,7 @@ npm run dev
 
 ## Scope
 
-This dashboard shows only the hosted product and a white-label deploy option. Developer
-documentation (self-host guides, library docs, fork-your-own instructions) is intentionally
-deferred to a future `meddleware.dev` sub-domain. Do not add self-host or library
-content here.
+This dashboard is for the people who use the five tools. Developer documentation (self-host guides, library docs, fork-your-own
+instructions) lives on the developer site (`meddleware.dev`; the footer links to it). Do not add self-host or library content here. Words on
+the page follow the wording rules: Meddleware (one spelling), no build variable, script or file name, nothing "coming soon" written by hand
+(what is live comes from the deployment records), and "operator" only for people who run infrastructure.

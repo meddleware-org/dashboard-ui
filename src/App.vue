@@ -24,10 +24,12 @@ import { useNetwork, useWallet } from '@meddleware/wallet-adapter'
 import { DEFAULT_CHAIN } from './chains.js'
 import ChainSelector from './components/ChainSelector.vue'
 import NetworkSelector from './components/NetworkSelector.vue'
+import { keepToOpenNetwork } from './network.js'
 
 const { mode } = useColorMode('dark')
 const route = useRoute()
-const { network } = useNetwork()
+const { network, explorerNetwork } = useNetwork()
+keepToOpenNetwork()
 
 // The sidebar has two modes. Top level shows the organisation sections (Treasury, Blockchain). Entering the Blockchain section swaps it to a
 // chain selector with an up-one-level control that returns to the top level without leaving the page. The mode follows the route (so a
@@ -60,8 +62,8 @@ const { account, disconnect } = useWallet({ requiredFeatures: ['sui:signTransact
 const DOCS_URL = import.meta.env.VITE_DOCS_URL || 'https://docs.meddleware.co.uk/'
 const DEV_URL = import.meta.env.VITE_DEV_URL || 'https://meddleware.dev/'
 
-// SuiVision has no localnet explorer, so a link exists only for public networks; otherwise the address is copy-only.
-const accountExplorerNetwork = computed(() => (network.value === 'mainnet' ? 'mainnet' : network.value === 'testnet' ? 'testnet' : null))
+// SuiVision has no localnet explorer, so the address links to it only on a public network; on localnet it is copy-only.
+const hasExplorer = computed(() => network.value !== 'localnet')
 const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : 'Meddleware'))
 </script>
 
@@ -111,7 +113,7 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
         <template #foot>
           <p v-if="account" class="foot">
             <CopyableAddress :address="account.address">
-              <ExplorerLink v-if="accountExplorerNetwork" :href="suiExplorerUrl('account', account.address, accountExplorerNetwork)" :value="account.address" />
+              <ExplorerLink v-if="hasExplorer" :href="suiExplorerUrl('account', account.address, explorerNetwork)" :value="account.address" />
             </CopyableAddress>
             <UiButton variant="link" size="sm" @click="disconnect">Disconnect</UiButton>
           </p>

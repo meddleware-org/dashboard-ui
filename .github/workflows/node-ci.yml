@@ -32,7 +32,10 @@ jobs:
         run: npm ci
 
       - name: Audit dependencies
-        run: node .github/audit-gate.mjs
+        run: npx mw-audit-gate
+
+      - name: Shared files are current
+        run: npx mw-sync --check
 
       - name: Verify registry signatures and provenance
         run: npm audit signatures
@@ -75,8 +78,8 @@ jobs:
             if (bad.length) { console.error('e2e files in the tarball:', bad); process.exit(1) }
           "
 
-      - name: No inline script in the built pages (the CSP refuses it)
-        run: npm run check:dist
+      - name: Inline scripts are covered by the CSP
+        run: npm run check:csp
 
       - name: Third-party licence notices
         run: npm run check:licenses && test -s dist/THIRD_PARTY_LICENSES

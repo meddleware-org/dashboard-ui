@@ -1,9 +1,11 @@
 <script setup lang="ts">
 // Network selector for the dashboard sidebar. Reads and writes the shared useNetwork() singleton so every embedded tool view reacts to the
-// chosen network immediately. Mainnet is listed but not selectable before launch, and a stored mainnet choice is reset to testnet.
-import { onMounted, ref, watch } from 'vue'
+// chosen network immediately. Mainnet is selectable only when the deployment records say it is live (`src/network.ts`); until then it is
+// listed, disabled, with what is missing.
+import { ref, watch } from 'vue'
 import { UiFormField, UiSelect, UiTextField } from '@meddleware/ui'
 import { useNetwork, type MwNetwork } from '@meddleware/wallet-adapter'
+import { networkOptions } from '../network.js'
 
 const { network, localnetRpc, setNetwork, setLocalnetRpc } = useNetwork()
 
@@ -22,9 +24,7 @@ function commitLocalnetUrl(): void {
   if (url) setLocalnetRpc(url)
 }
 
-onMounted(() => {
-  if (network.value === 'mainnet') setNetwork('testnet')
-})
+const options = networkOptions()
 </script>
 
 <template>
@@ -32,9 +32,7 @@ onMounted(() => {
     <UiFormField id="ns-select" label="Network">
       <template #default="{ attrs }">
         <UiSelect :id="attrs.id" :model-value="network" @change="onNetworkChange">
-          <option value="testnet">Testnet</option>
-          <option value="mainnet" disabled title="Coming soon">Mainnet</option>
-          <option value="localnet">Localnet</option>
+          <option v-for="o in options" :key="o.value" :value="o.value" :disabled="o.disabled" :title="o.title">{{ o.label }}</option>
         </UiSelect>
       </template>
     </UiFormField>
