@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.99] - 2026-11-12
+
+### Changed
+
+- The header shows the Meddleware mark (`BrandMark` from `@meddleware/ui` ^0.1.42) in place of the `◆` placeholder, and the browser tab, home-screen and web-manifest icons are the shared brand icon set. The app keeps no icon of its own: `public/favicon.svg` and the `<link rel="icon">` in `index.html` are removed, and `meddlewareApp` (`@meddleware/frontend-config` ^0.0.8, `name: 'Meddleware'`) emits `favicon.svg`, `favicon.ico`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` and `site.webmanifest` and injects the links. The footer's copyright symbol is unchanged.
+- No third-party fonts, scripts, styles, images or analytics: the only outside calls are the Sui node, the status page and the read-index the tools exist to use. CI workflows set `DO_NOT_TRACK=1`.
+- Takes the embedded tools' releases (access-gate-ui 0.1.49, sealed-storage-ui 0.0.49, token-issuance-ui 0.0.47, treasury-ui 0.0.28, walrus-storage-ui 0.1.70), `@meddleware/wallet-adapter` ^0.0.23 and `@meddleware/ui` ^0.1.42. The installed tree now has one copy of `@meddleware/web-utils` (^0.0.4; the lock takes `@meddleware/walrus-storage-kit` 0.1.40).
+
+### Internal
+
+- New tests: the mark in the header (decorative) and no icon of the app's own, and, over the built `dist/` (run in CI after the build with `REQUIRE_DIST=1`), the icon set once per page, the mark in the bundle and no `◆`, no font file or font host, no third-party load and no origin beyond this site, the explorers and the protocol endpoints.
+
 ## [0.1.98] - 2026-11-08
 
 ### Changed

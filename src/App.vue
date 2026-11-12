@@ -7,6 +7,7 @@ import {
   AppFooter,
   AppHeader,
   AppSidebar,
+  BrandMark,
   ColorModeControl,
   CopyableAddress,
   CopyrightLine,
@@ -72,7 +73,7 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
     <template #header>
       <AppHeader variant="dark" sidebar-id="main-nav" menu-label="Open the menu">
         <template #brand>
-          <RouterLink to="/" class="brand-link"><span class="brand-mark" aria-hidden="true">◆</span> Meddleware</RouterLink>
+          <RouterLink to="/" class="brand-link"><BrandMark class="mark" /> Meddleware</RouterLink>
         </template>
         <template #actions>
           <ColorModeControl v-model="mode" />
@@ -146,7 +147,7 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
   color: inherit;
   text-decoration: none;
 }
-.brand-mark {
+.mark {
   color: var(--accent);
 }
 .foot {

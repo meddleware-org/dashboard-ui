@@ -8,6 +8,7 @@ import { meddlewareApp } from '@meddleware/frontend-config/vite'
 export default defineConfig(
   meddlewareApp({
     plugins: [vue()],
+    name: 'Meddleware',
     config: {
       optimizeDeps: {
         // The Walrus wasm client is dynamically imported inside the inline WalrusStorageView upload flow; keep it out of the eager

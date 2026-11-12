@@ -96,7 +96,11 @@ and the release-gate contract (`tests/workflows.test.ts`). `npm run test:e2e` (P
 `E2E_BROWSERS=all`) builds the app in e2e mode (`npm run build:e2e`: a mock wallet and an empty stub chain, `src/e2e.ts`, refused in any
 other mode), serves `dist` and mounts `/`, every tool tab of `/blockchain` (disconnected and connected) and the legacy redirects with all
 external requests refused, then runs the shared accessibility sweep (`e2e/a11y.spec.ts`: every route and tool in every colour mode × season,
-reflow with the drawer at 320 px, text size, forced colours, keyboard). `npm run lhci` runs Lighthouse. `npm run check:csp`
+reflow with the drawer at 320 px, text size, forced colours, keyboard). `tests/app.test.ts` pins the header's brand mark and that the app keeps no icon of its own; `tests/dist.test.ts` runs over the built `dist/` (CI runs it after the build with
+`REQUIRE_DIST=1`; a plain `npm test` before a build skips it): the icon set and the manifest name, one icon link per kind, the mark in the bundle and no `◆`
+placeholder, no font file or font host, no third-party script, style or image, and no origin named beyond this site, the explorers and the protocol
+endpoints (the licence-text chunk is not read: it quotes the licensors' sites). Do not add a font, CDN, analytics or other third-party load; the CI
+workflows set `DO_NOT_TRACK=1`. `npm run lhci` runs Lighthouse. `npm run check:csp`
 (`mw-check-csp-inline`) fails if a built page has an inline script the Dockerfile's CSP does not allow by hash. CI (`node-ci.yml`) runs all of these, and
 both release workflows call it. CI also builds the image and probes the running container
 (`scripts/smoke.sh <image>`; `CONTAINER_ENGINE=podman` for rootless podman) and runs a Trivy filesystem scan.
@@ -110,7 +114,11 @@ The audit gate (`mw-audit-gate`), licence notices (`mw-third-party-licenses`), t
 configurations (`meddlewareApp`, `vueTestConfig`) and the tsconfig base come from `@meddleware/frontend-config`; there are no local copies.
 `package.json` `"meddleware": { "kind": "app", "csp": "chain-wasm", "lhci": true }` configures `npx mw-sync`, which keeps `.dockerignore`, the
 postcss and stylelint configs, `dependabot.yml`, the audit allowlist and the Dockerfile's `ARG CSP` equal to the shared templates: run
-`npx mw-sync --write` after a bump, `npx mw-sync --check` runs in CI. The CSP profile is `chain-wasm`: script-src is `'self'` plus
+`npx mw-sync --write` after a bump, `npx mw-sync --check` runs in CI. `meddlewareApp({ name: 'Meddleware' })` also emits the brand icon set
+(favicon, apple-touch-icon, 192/512 icons, `site.webmanifest`) and injects the links, so the app keeps no `public/favicon.*` and no icon `<link>`
+(`mw-sync --check` fails on the former). The header shows the company mark (`BrandMark` from `@meddleware/ui`, decorative, coloured with
+`var(--accent)`) beside the name; the footer's Kopimi symbol (`CopyrightLine`) is a different thing and stays. The tool emoji in the sidebar are
+tool icons, not the logo. The CSP profile is `chain-wasm`: script-src is `'self'` plus
 `'wasm-unsafe-eval'` for the Walrus and Move WebAssembly.
 
 ## Commands
