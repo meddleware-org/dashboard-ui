@@ -24,31 +24,36 @@ async function withRecords(gate: string[], seal: string[]) {
   return { mount, useNetwork, net, NetworkSelector }
 }
 
-describe('mainnet availability', () => {
-  it('is "coming" while neither record has a mainnet key', async () => {
+describe('network availability', () => {
+  it('is "coming" for mainnet while neither record has a mainnet key, and the option says so plainly', async () => {
     const { net } = await withRecords(['testnet'], ['testnet'])
     expect(net.AVAILABILITY.testnet.status).toBe('live')
     expect(net.AVAILABILITY.mainnet.status).toBe('coming')
-    expect(net.mainnetChoice()).toEqual({ open: false, label: 'Mainnet (not open yet)', title: 'Mainnet is coming' })
+    expect(net.networkChoice('mainnet', net.AVAILABILITY.mainnet)).toEqual({ open: false, label: 'Mainnet (not available yet)' })
   })
 
-  it('is "partial" when one record has it, and the tooltip names what is missing', async () => {
+  it('is "partial" when one record has mainnet: still not available, and the text names no product', async () => {
     const { net } = await withRecords(['testnet', 'mainnet'], ['testnet'])
     expect(net.AVAILABILITY.mainnet.status).toBe('partial')
-    expect(net.mainnetChoice()).toEqual({
-      open: false,
-      label: 'Mainnet (not open yet)',
-      title: 'Mainnet is not open yet. Still missing: sealed storage.',
-    })
+    expect(net.networkChoice('mainnet', net.AVAILABILITY.mainnet)).toEqual({ open: false, label: 'Mainnet (not available yet)' })
   })
 
   it('is "live" once both records have it, and the option reads as plain Mainnet', async () => {
     const { net } = await withRecords(['testnet', 'mainnet'], ['testnet', 'mainnet'])
     expect(net.AVAILABILITY.mainnet.status).toBe('live')
-    expect(net.mainnetChoice()).toEqual({ open: true, label: 'Mainnet' })
+    expect(net.networkChoice('mainnet', net.AVAILABILITY.mainnet)).toEqual({ open: true, label: 'Mainnet' })
   })
 
-  it('lists testnet, mainnet and localnet in that order, with only mainnet disabled', async () => {
+  it('is data for testnet as well: a network without records is not selectable', async () => {
+    const { net } = await withRecords(['mainnet'], ['mainnet'])
+    expect(net.networkOptions().map((o) => [o.value, o.label, o.disabled])).toEqual([
+      ['testnet', 'Testnet (not available yet)', true],
+      ['mainnet', 'Mainnet', false],
+      ['localnet', 'Localnet', false],
+    ])
+  })
+
+  it('lists testnet, mainnet and localnet in that order, with only mainnet disabled today', async () => {
     const { net } = await withRecords(['testnet'], ['testnet'])
     expect(net.networkOptions().map((o) => [o.value, o.disabled])).toEqual([['testnet', false], ['mainnet', true], ['localnet', false]])
   })
@@ -96,25 +101,26 @@ describe('the stored network', () => {
 })
 
 describe('NetworkSelector', () => {
-  it('offers testnet and localnet, and lists mainnet disabled with the reason while it is coming', async () => {
+  it('offers testnet and localnet, and lists mainnet disabled as not available yet while it is not deployed', async () => {
     const { mount, NetworkSelector } = await withRecords(['testnet'], ['testnet'])
     const select = mount(NetworkSelector).get('select')
     const option = (value: string) => select.get(`option[value="${value}"]`)
     expect(option('testnet').attributes('disabled')).toBeUndefined()
+    expect(option('testnet').text()).toBe('Testnet')
     expect(option('localnet').attributes('disabled')).toBeUndefined()
     expect(option('mainnet').attributes('disabled')).toBeDefined()
-    expect(option('mainnet').attributes('title')).toBe('Mainnet is coming')
-    expect(option('mainnet').text()).toBe('Mainnet (not open yet)')
+    expect(option('mainnet').attributes('title')).toBeUndefined()
+    expect(option('mainnet').text()).toBe('Mainnet (not available yet)')
   })
 
-  it('says what is missing while mainnet is partly deployed', async () => {
+  it('names no missing product while mainnet is only partly deployed', async () => {
     const { mount, NetworkSelector } = await withRecords(['testnet', 'mainnet'], ['testnet'])
     const option = mount(NetworkSelector).get('option[value="mainnet"]')
     expect(option.attributes('disabled')).toBeDefined()
-    expect(option.attributes('title')).toBe('Mainnet is not open yet. Still missing: sealed storage.')
+    expect(option.text()).toBe('Mainnet (not available yet)')
   })
 
-  it('enables mainnet, with no tooltip, once the records have it', async () => {
+  it('enables mainnet, as plain Mainnet, once the records have it', async () => {
     const { mount, NetworkSelector } = await withRecords(['testnet', 'mainnet'], ['testnet', 'mainnet'])
     const option = mount(NetworkSelector).get('option[value="mainnet"]')
     expect(option.attributes('disabled')).toBeUndefined()

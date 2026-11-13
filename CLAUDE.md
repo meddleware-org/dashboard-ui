@@ -48,8 +48,8 @@ sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHe
 - **Which networks are offered comes from the deployment records.** `src/network.ts` computes
   `networkAvailability({ 'access gate': Object.keys(ACCESS_GATE_DEPLOYMENTS), 'sealed storage': Object.keys(SEAL_POLICIES_DEPLOYMENTS) })`
   (`@meddleware/web-utils`, records from `@meddleware/access-gate-client/deployments` and `@meddleware/sealed-storage-client/deployments`).
-  `NetworkSelector` enables the mainnet option only when that status is `live` (the tooltip names what is missing when `partial`, and says
-  "Mainnet is coming" when `coming`), and `keepToOpenNetwork()` (called by `App.vue`, with or without a wallet) resets a stored mainnet
+  `NetworkSelector` enables each of the testnet and mainnet options only when that network's status is `live`; otherwise the option reads
+  "Mainnet (not available yet)" (plain, naming no product; D117), and `keepToOpenNetwork()` (called by `App.vue`, with or without a wallet) resets a stored mainnet
   choice to testnet only while mainnet is not live. Adding a `mainnet` key to both records is the whole switch; never hand-write a
   disabled mainnet option or a sentence saying which network is live (the platform's mainnet-readiness structure check
   fails on it). Token Issuance additionally keeps mainnet closed until the build carries `VITE_FEE_TREASURY_MAINNET` (no personal address is

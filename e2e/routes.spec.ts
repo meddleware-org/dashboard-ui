@@ -75,11 +75,11 @@ test('mainnet is offered only when the records make it live, and a stored mainne
   await expect(select.locator('option[value="testnet"]')).toBeEnabled()
   await expect(select.locator('option[value="localnet"]')).toBeEnabled()
   if (await mainnet.isDisabled()) {
-    // Not live: the option says why, and the stored choice was reset.
-    await expect(mainnet).toHaveAttribute('title', /^Mainnet is (coming|not open yet\. Still missing: .+\.)$/)
+    // Not live: the option says so plainly, and the stored choice was reset.
+    await expect(mainnet).toHaveText('Mainnet (not available yet)')
     await expect(select).toHaveValue('testnet')
   } else {
-    await expect(mainnet).not.toHaveAttribute('title')
+    await expect(mainnet).toHaveText('Mainnet')
     await expect(select).toHaveValue('mainnet')
   }
   expect(errors).toEqual([])

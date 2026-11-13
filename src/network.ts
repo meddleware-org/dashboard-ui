@@ -16,40 +16,38 @@ export const AVAILABILITY = networkAvailability({
   'sealed storage': Object.keys(SEAL_POLICIES_DEPLOYMENTS),
 })
 
-export interface MainnetChoice {
-  /** Mainnet can be selected. */
+export interface NetworkChoice {
+  /** The network can be selected. */
   readonly open: boolean
-  /** The option's text. */
+  /** The option's text: the network's name, and "not available yet" while its records are missing. */
   readonly label: string
-  /** The option's tooltip: what is missing, or that mainnet is coming. Absent when mainnet is open. */
-  readonly title?: string
 }
 
-/** How the mainnet option reads for the given availability (default: the records). */
-export function mainnetChoice(mainnet: NetworkAvailability = AVAILABILITY.mainnet): MainnetChoice {
-  switch (mainnet.status) {
-    case 'live':
-      return { open: true, label: 'Mainnet' }
-    case 'partial':
-      return { open: false, label: 'Mainnet (not open yet)', title: `Mainnet is not open yet. Still missing: ${mainnet.missing.join(', ')}.` }
-    case 'coming':
-      return { open: false, label: 'Mainnet (not open yet)', title: 'Mainnet is coming' }
-  }
+const NAMES = { testnet: 'Testnet', mainnet: 'Mainnet' } as const
+
+/**
+ * How a network's option reads for its availability: selectable once every hosted product has a record there, otherwise listed with
+ * "not available yet" (plain: a reader cannot act on which product is missing, so the text names none; D117).
+ */
+export function networkChoice(network: keyof typeof NAMES, availability: NetworkAvailability): NetworkChoice {
+  return availability.status === 'live'
+    ? { open: true, label: NAMES[network] }
+    : { open: false, label: `${NAMES[network]} (not available yet)` }
 }
 
 export interface NetworkOption {
   readonly value: MwNetwork
   readonly label: string
   readonly disabled: boolean
-  readonly title?: string
 }
 
-/** The options of the network selector: testnet and localnet always, mainnet as the records allow. */
-export function networkOptions(mainnet: NetworkAvailability = AVAILABILITY.mainnet): NetworkOption[] {
-  const choice = mainnetChoice(mainnet)
+/** The options of the network selector: testnet and mainnet as the records allow, localnet always (a developer's own node). */
+export function networkOptions(availability: Pick<typeof AVAILABILITY, 'testnet' | 'mainnet'> = AVAILABILITY): NetworkOption[] {
+  const testnet = networkChoice('testnet', availability.testnet)
+  const mainnet = networkChoice('mainnet', availability.mainnet)
   return [
-    { value: 'testnet', label: 'Testnet', disabled: false },
-    { value: 'mainnet', label: choice.label, disabled: !choice.open, title: choice.title },
+    { value: 'testnet', label: testnet.label, disabled: !testnet.open },
+    { value: 'mainnet', label: mainnet.label, disabled: !mainnet.open },
     { value: 'localnet', label: 'Localnet', disabled: false },
   ]
 }

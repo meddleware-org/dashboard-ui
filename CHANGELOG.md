@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.100] - 2026-11-13
+
+### Changed
+
+- The network selector reads each network's availability from the deployment records (`networkAvailability` over the Access Gate and Sealed Storage records): a network without records for every hosted product is listed disabled as "Mainnet (not available yet)" (plain, naming no product), and one that has them is selectable. Testnet follows the same rule as mainnet.
+- Takes `@meddleware/ui` ^0.1.43 and `@meddleware/frontend-config` ^0.0.9; the embedded tools are unchanged (access-gate-ui 0.1.49, sealed-storage-ui 0.0.49, token-issuance-ui 0.0.47, treasury-ui 0.0.28, walrus-storage-ui 0.1.70).
+
+### Internal
+
+- Tests: both states of the selector (not available yet; selectable) with the records mocked, for testnet and mainnet.
+
 ## [0.1.99] - 2026-11-12
 
 ### Changed
