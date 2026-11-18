@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [0.1.102] - 2026-11-18
+
+### Fixed
+
+- The help text beside form fields and column headings (Token Issuance, Treasury) is drawn beside its button in the top layer and wraps inside its own background, so it no longer widens an empty table or adds a horizontal scrollbar (`@meddleware/ui` 0.1.44, `@meddleware/token-issuance-ui` 0.0.48, `@meddleware/treasury-ui` 0.0.29).
+- Takes `@meddleware/frontend-config` ^0.0.15 (the accessibility suite checks that a sticky header holds still).
+
 ## [0.1.101] - 2026-11-13
 
 ### Changed
