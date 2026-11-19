@@ -119,9 +119,6 @@ jobs:
       image: mcr.microsoft.com/playwright:v${{ needs.playwright.outputs.version }}-resolute
       # Chromium's recommended shared-memory setting for containers.
       options: --ipc=host
-    env:
-      # The image runs as root; Firefox refuses a HOME it does not own.
-      HOME: /root
     strategy:
       fail-fast: false
       matrix:
@@ -158,8 +155,10 @@ jobs:
           for f in sans-serif system-ui serif monospace; do fc-match "$f" | grep -q DejaVu || { echo "::error::$f is $(fc-match "$f")"; exit 1; }; done
 
       # Every route and every embedded tool mounts in a real browser, with no network, on five browsers (WCAG 2.2 AA, reflow, keyboard).
+      # HOME only here: the image runs as root and Firefox refuses a HOME it does not own. Set on the command, not the job, so the
+      # runner's own docker exec on the host does not read /root/.docker/config.json ("permission denied" warnings).
       - name: Browser tests (routes, tool tabs, accessibility sweep)
-        run: npm run test:e2e -- --project=${{ matrix.project }}
+        run: HOME=/root npm run test:e2e -- --project=${{ matrix.project }}
         env:
           E2E_BROWSERS: all
 
