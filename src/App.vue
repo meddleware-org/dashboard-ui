@@ -27,7 +27,7 @@ import ChainSelector from './components/ChainSelector.vue'
 import NetworkSelector from './components/NetworkSelector.vue'
 import { keepToOpenNetwork } from './network.js'
 
-const { mode } = useColorMode('dark')
+const { mode, remember } = useColorMode('dark')
 const route = useRoute()
 const { network, explorerNetwork } = useNetwork()
 keepToOpenNetwork()
@@ -76,7 +76,7 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
           <RouterLink to="/" class="brand-link"><BrandMark class="mark" /> Meddleware</RouterLink>
         </template>
         <template #actions>
-          <ColorModeControl v-model="mode" />
+          <ColorModeControl v-model="mode" v-model:remember="remember" />
         </template>
       </AppHeader>
     </template>
