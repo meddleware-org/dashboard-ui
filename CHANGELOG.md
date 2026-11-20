@@ -7,6 +7,10 @@ Releases before 0.1.85 are recorded in the git history only.
 
 ## [Unreleased]
 
+- **The dashboard opens on Tools** (copy review 2, approved 2026-11-20): the tools available now, a card each, opening the tool in
+  place; the console at `/tools/<id>` (the address names the open tool); the menu lists the tools, then "About Meddleware" (Treasury,
+  Standards we use, Roadmap); the treasury moves to `/treasury` and the footer. The chain selector is gone: each card names what the
+  tool runs on and its network. Old addresses (`/blockchain`, the per-tool paths) redirect. New title and description.
 - CI: `HOME=/root` is set on the browser-test command only, not the whole job, so the runner no longer warns that it cannot read
   `/root/.docker/config.json`.
 - `overrides.chrome-launcher: ^1.2.3`: Lighthouse CI (`@lhci/cli` 0.16.1, the newest) still asks for chrome-launcher 0.13, which pulls

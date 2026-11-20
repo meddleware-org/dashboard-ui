@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
 vi.mock('@meddleware/treasury-ui', () => ({ TreasuryView: { template: '<p class="view">treasury</p>' } }))
-vi.mock('../src/views/BlockchainView.vue', () => ({ default: { template: '<p class="view">blockchain</p>' } }))
+vi.mock('../src/views/ToolsView.vue', () => ({ default: { template: '<p class="view">tools</p>' } }))
 const { default: router } = await import('../src/router/index.js')
 const { default: App } = await import('../src/App.vue')
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // The dashboard shell: header, sidebar (a drawer on a phone), the routed tool, footer. The shell hosts the one shared wallet connection and
 // the network choice; every tool view renders inline from its own package and reads them from the @meddleware/wallet-adapter singleton.
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import {
   AppFooter,
@@ -22,8 +22,7 @@ import {
 } from '@meddleware/ui'
 import { suiExplorerUrl } from '@meddleware/web-utils'
 import { useNetwork, useWallet } from '@meddleware/wallet-adapter'
-import { DEFAULT_CHAIN } from './chains.js'
-import ChainSelector from './components/ChainSelector.vue'
+import { TOOLS, toolById } from './tools.js'
 import NetworkSelector from './components/NetworkSelector.vue'
 import { keepToOpenNetwork } from './network.js'
 
@@ -32,29 +31,8 @@ const route = useRoute()
 const { network, explorerNetwork } = useNetwork()
 keepToOpenNetwork()
 
-// The sidebar has two modes. Top level shows the organisation sections (Treasury, Blockchain). Entering the Blockchain section swaps it to a
-// chain selector with an up-one-level control that returns to the top level without leaving the page. The mode follows the route (so a
-// direct load, a reload or a back-forward lands right); `upOneLevel` sets 'top' without a route change, and that override stands until the
-// next navigation.
-type SidebarView = 'top' | 'blockchain'
-const sidebarView = ref<SidebarView>('top')
-const selectedChain = ref(DEFAULT_CHAIN)
-watch(
-  () => route.path,
-  (p) => {
-    sidebarView.value = p === '/blockchain' ? 'blockchain' : 'top'
-  },
-  { immediate: true },
-)
-const isTreasury = computed(() => route.path === '/')
-const isBlockchain = computed(() => route.path === '/blockchain')
-const upOneLevel = (): void => {
-  sidebarView.value = 'top'
-}
-// Already on /blockchain: the link does not navigate, but the section still opens its chain selector.
-const openBlockchain = (): void => {
-  sidebarView.value = 'blockchain'
-}
+// The menu: the tools (each opens in the tool console), then what is about Meddleware itself (copy review 2, approved 2026-11-20).
+const currentTool = computed(() => (route.name === 'tool' ? String(route.params.tool) : undefined))
 
 // The dashboard hosts the single shared wallet connection for every inline tool view. It requests the superset of features the tools need so
 // the connect control only offers wallets capable of every operation; individual tools still feature-guard at call time.
@@ -65,7 +43,7 @@ const DEV_URL = import.meta.env.VITE_DEV_URL || 'https://meddleware.dev/'
 
 // SuiVision has no localnet explorer, so the address links to it only on a public network; on localnet it is copy-only.
 const hasExplorer = computed(() => network.value !== 'localnet')
-const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.title : 'Meddleware'))
+const title = computed(() => toolById(currentTool.value)?.name ?? (typeof route.meta.title === 'string' ? route.meta.title : 'Meddleware'))
 </script>
 
 <template>
@@ -83,29 +61,21 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
 
     <template #sidebar>
       <AppSidebar id="main-nav" variant="dark" nav-label="Dashboard">
-        <!-- Top level: organisation sections -->
-        <template v-if="sidebarView === 'top'">
-          <SidebarGroup label="Organisation" :level="1">
-            <RouterLink v-slot="{ href, navigate }" to="/" custom>
-              <SidebarItem label="Treasury" icon="🏦" :href="href" :active="isTreasury" @click="navigate" />
-            </RouterLink>
-            <RouterLink v-slot="{ href, navigate }" to="/blockchain" custom>
-              <SidebarItem
-                label="Blockchain"
-                icon="⛓"
-                :href="href"
-                :active="isBlockchain"
-                @click="(e: MouseEvent) => { navigate(e); openBlockchain() }"
-              />
-            </RouterLink>
-          </SidebarGroup>
-        </template>
-
-        <!-- Blockchain section: up-one-level + the chain selector -->
-        <template v-else>
-          <SidebarItem label="Back" icon="←" @click="upOneLevel" />
-          <ChainSelector v-model="selectedChain" />
-        </template>
+        <SidebarGroup label="Tools" :level="1">
+          <RouterLink v-slot="{ href, navigate }" to="/" custom>
+            <SidebarItem label="All tools" icon="▦" :href="href" :active="route.name === 'tools'" @click="navigate" />
+          </RouterLink>
+          <RouterLink v-for="t in TOOLS" :key="t.id" v-slot="{ href, navigate }" :to="`/tools/${t.id}`" custom>
+            <SidebarItem :label="t.name" :icon="t.icon" :href="href" :active="currentTool === t.id" @click="navigate" />
+          </RouterLink>
+        </SidebarGroup>
+        <SidebarGroup label="About Meddleware" :level="1">
+          <RouterLink v-slot="{ href, navigate }" to="/treasury" custom>
+            <SidebarItem label="Treasury" icon="🏦" :href="href" :active="route.name === 'treasury'" @click="navigate" />
+          </RouterLink>
+          <SidebarItem label="Standards we use ↗" icon="📐" href="https://meddleware.dev/platform/standards" />
+          <SidebarItem label="Roadmap ↗" icon="🗺" href="https://roadmap.meddleware.co.uk" />
+        </SidebarGroup>
 
         <template #body>
           <NetworkSelector v-if="account" />
@@ -118,14 +88,14 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
             </CopyableAddress>
             <UiButton variant="link" size="sm" @click="disconnect">Disconnect</UiButton>
           </p>
-          <p v-else class="foot"><UiStatusDot status="unknown" size="sm" /> No wallet connected</p>
+          <p v-else class="foot"><UiStatusDot status="unknown" size="sm" /> No wallet connected. Only tools that need one will ask.</p>
         </template>
       </AppSidebar>
     </template>
 
     <h1 class="mw-visually-hidden">{{ title }}</h1>
-    <RouterView v-slot="{ Component, route: current }">
-      <component :is="Component" :chain="current.name === 'blockchain' ? selectedChain : undefined" />
+    <RouterView v-slot="{ Component }">
+      <component :is="Component" />
     </RouterView>
 
     <template #footer>
@@ -134,6 +104,10 @@ const title = computed(() => (typeof route.meta.title === 'string' ? route.meta.
           <CopyrightLine symbol-variant="kopimi" organisation-name="Meddleware" rights-statement="jam" />
         </template>
         <StatusWidget />
+        <template #end>
+          <!-- Meddleware's own funds, in public: in the footer as on the landing page. -->
+          <RouterLink to="/treasury">Treasury</RouterLink>
+        </template>
       </AppFooter>
     </template>
   </UiAppShell>

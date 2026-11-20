@@ -1,9 +1,10 @@
 // Screenshots for LOOKING at the app (see @meddleware/frontend-config/shots). Run: npm run shots. The connected states go through the e2e
 // build's mock wallet.
 import { defineShots } from '@meddleware/frontend-config/shots'
-import { tool, treasury } from './open.js'
+import { tool, tools, treasury } from './open.js'
 
 defineShots({
+  tools,
   treasury,
   walrus: tool('Walrus Storage'),
   sealed: tool('Sealed Storage'),

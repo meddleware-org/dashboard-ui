@@ -9,19 +9,26 @@ export const TOOLS = [
   { tab: 'Token Issuance', body: /Deploy your own Sui coin/ },
 ] as const
 
-/** The built dashboard (the e2e build: a mock wallet and an empty stub chain), every request that leaves localhost refused. */
-export async function treasury(page: Page): Promise<void> {
+/** The dashboard's first screen, Tools (the e2e build: a mock wallet and an empty stub chain), every request leaving localhost refused. */
+export async function tools(page: Page): Promise<void> {
   await offline(page)
   await page.goto('/')
+  await page.getByRole('heading', { name: 'Tools', level: 2 }).waitFor()
+}
+
+/** The treasury view. */
+export async function treasury(page: Page): Promise<void> {
+  await offline(page)
+  await page.goto('/treasury')
   await page.getByText('Meddleware Treasury').waitFor()
 }
 
-/** A tool's tab in `/blockchain`, with the wallet connected or not. */
+/** A tool's tab in the console (`/tools/<id>`), with the wallet connected or not. */
 export const tool =
   (name: string, connected = false) =>
   async (page: Page): Promise<void> => {
     await offline(page)
-    await page.goto('/blockchain')
+    await page.goto('/tools/walrus-storage')
     await page.getByRole('tab', { name, exact: true }).click()
     if (connected) {
       await page.getByRole('button', { name: /^Connect wallet$/i }).first().click()
