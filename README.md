@@ -21,3 +21,7 @@ npm run build && npm run check:bundle && npm run check:csp
 ```
 
 `npm run check:bundle` fails if a test hook reached the production bundle; `npm run check:csp` fails if the build has an inline script the image's Content-Security-Policy would refuse.
+
+## Open standards
+
+What this project speaks, what is planned and where you can extend it: [docs/INTEROP.md](docs/INTEROP.md).

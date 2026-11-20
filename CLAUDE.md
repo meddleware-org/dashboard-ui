@@ -157,3 +157,7 @@ This dashboard is for the people who use the five tools. Developer documentation
 instructions) lives on the developer site (`meddleware.dev`; the footer links to it). Do not add self-host or library content here. Words on
 the page follow the wording rules: Meddleware (one spelling), no build variable, script or file name, nothing "coming soon" written by hand
 (what is live comes from the deployment records), and "operator" only for people who run infrastructure.
+
+## Interoperability
+
+- [docs/INTEROP.md](docs/INTEROP.md): the standards this project speaks, what is planned, where to extend it, and what proves each claim.
