@@ -22,6 +22,8 @@ test('Tools is the first screen: one card per tool, each opening the tool in pla
   await expect(page.getByRole('contentinfo')).toBeVisible()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Tools')
   await expect(page.getByRole('main').getByRole('listitem')).toHaveCount(TOOLS.length)
+  // On a phone the menu is a drawer over the page; start again with it closed before using a card.
+  await tools(page)
   await page.getByRole('main').getByRole('link', { name: 'Choose who can open a file' }).click()
   await expect(page).toHaveURL(/\/tools\/sealed-storage$/)
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sealed Storage')
