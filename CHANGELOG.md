@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [Unreleased]
+
+- The five embedded tools take the copy-standard wording (a pass is a pass, the network fee is the network fee, "Platform fee rate"; the Walrus tool is "Walrus Storage" throughout).
+
 ## [0.1.105] - 2026-11-20
 
 - **The dashboard opens on Tools** (copy review 2, approved 2026-11-20): the tools available now, a card each, opening the tool in
