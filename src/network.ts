@@ -16,6 +16,7 @@ export const AVAILABILITY = networkAvailability({
   'sealed storage': Object.keys(SEAL_POLICIES_DEPLOYMENTS),
 })
 
+/** How one network's option reads in the selector. */
 export interface NetworkChoice {
   /** The network can be selected. */
   readonly open: boolean
@@ -23,6 +24,7 @@ export interface NetworkChoice {
   readonly label: string
 }
 
+/** The network names as a visitor reads them. */
 const NAMES = { testnet: 'Testnet', mainnet: 'Mainnet' } as const
 
 /**
@@ -35,9 +37,13 @@ export function networkChoice(network: keyof typeof NAMES, availability: Network
     : { open: false, label: `${NAMES[network]} (not available yet)` }
 }
 
+/** One option of the network selector. */
 export interface NetworkOption {
+  /** The network the option selects. */
   readonly value: MwNetwork
+  /** The option's text. */
   readonly label: string
+  /** Whether the option cannot be chosen (mainnet before it is live). */
   readonly disabled: boolean
 }
 

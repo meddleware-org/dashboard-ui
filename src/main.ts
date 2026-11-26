@@ -1,3 +1,5 @@
+// Entry point of the dashboard: load the design system, read the runtime configuration, then import the app and its router (in that order,
+// because the embedded tools read their endpoints when their modules load) and mount it.
 import { createApp } from 'vue'
 
 // Shared design system: tokens first (defines CSS vars), then the element defaults and utilities (components bring their own CSS).

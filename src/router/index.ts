@@ -1,3 +1,5 @@
+// The dashboard's router: three screens (the tool list, the tool console and the treasury) and the redirects from addresses that earlier
+// versions used. The route table below says what each address shows.
 import { createRouter, createWebHistory } from 'vue-router'
 import { toolById } from '../tools.js'
 
@@ -7,6 +9,7 @@ import { toolById } from '../tools.js'
 //   /treasury     → Meddleware's own funds, in public (also linked from the footer).
 // Each tool renders inline from its own package (no iframes), sharing the dashboard's wallet through the @meddleware/wallet-adapter
 // singleton. Routes are lazy so a tool's dependencies (the Walrus wasm included) load only on navigation.
+/** The one router the app uses (history mode; the base comes from Vite). */
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [

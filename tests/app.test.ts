@@ -4,17 +4,21 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 
+// Replace the two routed views with stubs: these tests pin the shell, not what it routes to.
 vi.mock('@meddleware/treasury-ui', () => ({ TreasuryView: { template: '<p class="view">treasury</p>' } }))
 vi.mock('../src/views/ToolsView.vue', () => ({ default: { template: '<p class="view">tools</p>' } }))
+// Import the router and the app only after the mocks are in place.
 const { default: router } = await import('../src/router/index.js')
 const { default: App } = await import('../src/App.vue')
 
+/** Mount the app at the tool list with the real router. */
 async function mounted() {
   await router.push('/')
   await router.isReady()
   return mount(App, { global: { plugins: [router] } })
 }
 
+// The header's brand.
 describe('App header', () => {
   it('shows the company mark beside the name, hidden from assistive technology, and no placeholder glyph', async () => {
     const header = (await mounted()).get('header')
@@ -25,6 +29,7 @@ describe('App header', () => {
   })
 })
 
+// The favicon set is shared, not the app's own.
 describe('the brand', () => {
   it('keeps no icon of its own: the favicon set comes from the shared brand icons', () => {
     expect(existsSync('public/favicon.svg')).toBe(false)

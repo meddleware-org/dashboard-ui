@@ -7,9 +7,11 @@ import { join } from 'node:path'
 import router from '../src/router'
 import { TOOLS } from '../src/tools'
 
+// The route table, and a lookup by path.
 const routes = router.getRoutes()
 const byPath = (path: string) => routes.find((r) => r.path === path)
 
+// Where each address goes.
 describe('router', () => {
   it('serves Tools at /, the tool console at /tools/:tool and the treasury at /treasury', () => {
     expect(byPath('/')?.name).toBe('tools')
@@ -46,6 +48,7 @@ describe('router', () => {
   })
 })
 
+// The tools are imported from their own packages, lazily, and never embedded in an iframe.
 describe('tool mounting', () => {
   const tools = readFileSync(join(import.meta.dirname, '..', 'src', 'tools.ts'), 'utf8')
 

@@ -25,3 +25,7 @@ npm run build && npm run check:bundle && npm run check:csp
 ## Open standards
 
 What this project speaks, what is planned and where you can extend it: [docs/INTEROP.md](docs/INTEROP.md).
+
+## Contributing
+
+How to run the checks and propose a change: [CONTRIBUTING.md](CONTRIBUTING.md).

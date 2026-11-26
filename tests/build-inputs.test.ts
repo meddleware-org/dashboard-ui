@@ -6,28 +6,35 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 
+// The repository root, and a reader for files relative to it.
 const root = join(import.meta.dirname, '..')
 const read = (p: string) => readFileSync(join(root, p), 'utf8')
 
+// The three files whose build inputs must agree: the Dockerfile, the environment example and the release workflow.
 const dockerfile = read('Dockerfile')
 const envExample = read('.env.example')
 const workflow = read('.github/workflows/docker-publish.yml')
 
+// set(names): the unique names, sorted, so lists compare equal regardless of order.
 const set = (xs: Iterable<string>) => [...new Set(xs)].sort()
+// viteNames(text): every VITE_* name the text mentions.
 const viteNames = (text: string) => set([...text.matchAll(/\bVITE_[A-Z0-9_]+/g)].map((m) => m[0]))
 
+// The build arguments the Dockerfile declares, and the variables it bakes into the build.
 const dockerArgs = set([...dockerfile.matchAll(/^ARG (VITE_[A-Z0-9_]+)/gm)].map((m) => m[1]!))
 const dockerEnv = set([...dockerfile.matchAll(/^(?:ENV |\s+)(VITE_[A-Z0-9_]+)=\$\{/gm)].map((m) => m[1]!))
 
 /** The build-args block of each `docker/build-push-action` step, as a sorted list of names. */
 const buildArgBlocks = [...workflow.matchAll(/build-args: \|\n((?:[ ]+\S.*\n?)+)/g)].map((m) => viteNames(m[1]!))
 
+/** Every file under a directory, concatenated (to find the VITE_* names the shell reads). */
 function sourceText(dir: string): string {
   return readdirSync(dir, { withFileTypes: true })
     .map((e) => (e.isDirectory() ? sourceText(join(dir, e.name)) : readFileSync(join(dir, e.name), 'utf8')))
     .join('\n')
 }
 
+// The Dockerfile's inputs are complete, documented and pinned.
 describe('Dockerfile build inputs', () => {
   it('declares VITE_NETWORK and the relay, gate and indexer values', () => {
     expect(dockerArgs).toEqual(expect.arrayContaining([
@@ -61,6 +68,7 @@ describe('Dockerfile build inputs', () => {
   })
 })
 
+// Both architectures' image builds pass the same arguments, and only declared ones.
 describe('release build arguments', () => {
   it('has a build-args block for each of the two image builds (the self-hosted registry gets the published image by digest, not a rebuild)', () => {
     expect(buildArgBlocks).toHaveLength(2)
@@ -75,6 +83,7 @@ describe('release build arguments', () => {
   })
 })
 
+// The price is read from the chain, so no file may configure it.
 describe('the access-gate price is read from the chain, not configured', () => {
   const files = [
     'Dockerfile',

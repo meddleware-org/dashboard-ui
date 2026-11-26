@@ -1,8 +1,12 @@
+# Installed packages and build output.
 node_modules/
 dist/
+# Test and browser-test output.
 test-results/
 playwright-report/
+# Coverage reports.
 coverage/
+# Local environment overrides, never committed.
 .env*.local
 
 # Lighthouse CI

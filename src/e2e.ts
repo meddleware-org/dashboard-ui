@@ -3,6 +3,7 @@
 // can be checked connected (each tool's own flows are covered in its own repository).
 import { installE2eWallet } from '@meddleware/wallet-adapter/testing'
 
+/** Register the mock wallet the end-to-end build connects with; the chain client is the stub the shared test helper installs. */
 export function installE2e(): void {
   installE2eWallet()
 }

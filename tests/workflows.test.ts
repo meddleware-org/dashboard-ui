@@ -5,12 +5,14 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
+// The repository root, a reader for files relative to it, and the workflow and scripts under test.
 const root = join(import.meta.dirname, '..')
 const read = (p: string) => readFileSync(join(root, p), 'utf8')
 
 const ci = read('.github/workflows/node-ci.yml')
 const scripts = (JSON.parse(read('package.json')) as { scripts: Record<string, string> }).scripts
 
+// CI runs every check this repository has, with actions pinned by commit hash.
 describe('CI (node-ci.yml)', () => {
   it('is callable by the release workflows', () => {
     expect(ci).toMatch(/workflow_call:/)
@@ -53,6 +55,7 @@ describe('CI (node-ci.yml)', () => {
   })
 })
 
+// Both release workflows run the full CI workflow before anything is built or published.
 describe('release workflows', () => {
   it.each(['.github/workflows/docker-publish.yml', '.github/workflows/npm-publish.yml'])(
     '%s runs the full CI workflow before anything is built or published',
@@ -63,6 +66,7 @@ describe('release workflows', () => {
   )
 })
 
+// The image build refuses an inline script and runs unprivileged.
 describe('Dockerfile', () => {
   it('fails the image build on an inline script', () => {
     expect(read('Dockerfile')).toMatch(/RUN npx mw-check-csp-inline "\${CSP}" dist/)

@@ -1,7 +1,9 @@
+// Helpers the dashboard's browser tests share: opening a screen with every request that leaves localhost refused, and the tool list.
 import type { Page } from '@playwright/test'
 import { offline } from '@meddleware/frontend-config/look'
 import { connectMockWallet } from '@meddleware/frontend-config/wallet'
 
+/** The four tools, as a tab is named and a sentence its body contains (what the browser tests look for). */
 export const TOOLS = [
   { tab: 'Walrus Storage', body: /Upload and manage blobs on Walrus/ },
   { tab: 'Sealed Storage', body: /Client-side encrypted, access-gated storage/ },

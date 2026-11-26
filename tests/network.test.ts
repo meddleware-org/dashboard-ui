@@ -3,12 +3,14 @@
 // switch (the real ones hold testnet only until the mainnet publish).
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// Forget the mocked records and the module cache, so each test starts from the real modules.
 afterEach(() => {
   vi.doUnmock('@meddleware/access-gate-client/deployments')
   vi.doUnmock('@meddleware/sealed-storage-client/deployments')
   vi.resetModules()
 })
 
+// record(networks): a deployment record that lists exactly these networks.
 const record = (networks: string[]) => Object.fromEntries(networks.map((n) => [n, { originalId: '0x1', publishedAt: '0x1' }]))
 
 /** The shell's network code as it behaves when the two records hold exactly these networks. */
@@ -16,14 +18,17 @@ async function withRecords(gate: string[], seal: string[]) {
   vi.resetModules()
   vi.doMock('@meddleware/access-gate-client/deployments', () => ({ ACCESS_GATE_DEPLOYMENTS: record(gate) }))
   vi.doMock('@meddleware/sealed-storage-client/deployments', () => ({ SEAL_POLICIES_DEPLOYMENTS: record(seal) }))
+  // Import everything after the mocks are in place, so it sees the mocked records.
   const { mount } = await import('@vue/test-utils')
   const { useNetwork } = await import('@meddleware/wallet-adapter')
   const net = await import('../src/network.js')
   const NetworkSelector = (await import('../src/components/NetworkSelector.vue')).default
+  // Start every test on testnet.
   useNetwork().setNetwork('testnet')
   return { mount, useNetwork, net, NetworkSelector }
 }
 
+// What each availability status makes the selector say.
 describe('network availability', () => {
   it('is "coming" for mainnet while neither record has a mainnet key, and the option says so plainly', async () => {
     const { net } = await withRecords(['testnet'], ['testnet'])
@@ -66,9 +71,11 @@ describe('network availability', () => {
   })
 })
 
+// A stored choice returns to testnet only while mainnet is not live.
 describe('the stored network', () => {
   it('goes back to testnet when mainnet is not live', async () => {
     const { net, useNetwork } = await withRecords(['testnet'], ['testnet'])
+    // Set a stored choice, run the shell's check and read the result.
     const { network, setNetwork } = useNetwork()
     setNetwork('mainnet')
     net.keepToOpenNetwork()
@@ -100,9 +107,11 @@ describe('the stored network', () => {
   })
 })
 
+// The selector's options, wording and writes.
 describe('NetworkSelector', () => {
   it('offers testnet and localnet, and lists mainnet disabled as not available yet while it is not deployed', async () => {
     const { mount, NetworkSelector } = await withRecords(['testnet'], ['testnet'])
+    // Mount the selector and read its options.
     const select = mount(NetworkSelector).get('select')
     const option = (value: string) => select.get(`option[value="${value}"]`)
     expect(option('testnet').attributes('disabled')).toBeUndefined()
@@ -146,6 +155,7 @@ describe('NetworkSelector', () => {
   })
 })
 
+// No file writes a disabled mainnet option or "coming soon" by hand: the records are the one switch.
 describe('no hard-coded network claim', () => {
   it('has no disabled mainnet option written by hand, and no "coming soon"', async () => {
     const { readFileSync, readdirSync } = await import('node:fs')

@@ -2,28 +2,37 @@
 // One tool at a time, as tabs over every tool the dashboard hosts (`/tools/<id>`): the address names the open tool, and switching tabs
 // updates it (replace, so the back button returns to where the visitor came from, not through every tab). Each tool view is lazy-loaded
 // (its dependencies, the Walrus wasm included, load only when its tab is first opened) and kept alive so switching preserves its state.
+// Vue, the router, the tab components and the tool list.
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { AppTabNav, UiTabPanel, useStickyOffset, type AppTab } from '@meddleware/ui'
 import { TOOLS, toolById } from '../tools.js'
 
+// The route and router: the address names the open tool.
 const route = useRoute()
 const router = useRouter()
 
+// One tab per tool.
 const tabs = computed<AppTab[]>(() => TOOLS.map(({ id, name }) => ({ id, label: name })))
+// The tool the address names, or the first tool for an unknown one.
 const fromRoute = (): string => (toolById(String(route.params.tool ?? ''))?.id ?? TOOLS[0]?.id ?? '')
+// The open tool's id.
 const active = ref(fromRoute())
 
+// Follow the address when it changes (back, forward, a link).
 watch(() => route.params.tool, () => {
   active.value = fromRoute()
 })
+// Follow the tab when it changes (replace, so back returns to where the visitor came from).
 watch(active, (id) => {
   if (route.params.tool !== id) void router.replace({ name: 'tool', params: { tool: id } })
 })
 
+// The open tool's view.
 const activeComp = computed(() => toolById(active.value)?.view)
 
 // The tab strip sticks under the header: publish its height so a focused field is never left behind either of them (WCAG 2.4.11).
+// The tab strip element, to measure its height.
 const strip = ref<{ $el?: unknown } | null>(null)
 useStickyOffset(strip, '--mw-sticky-extra')
 </script>
@@ -34,6 +43,7 @@ useStickyOffset(strip, '--mw-sticky-extra')
     <AppTabNav v-model="active" :tabs="tabs" id-prefix="tools" variant="raised" size="lg" flush ref="strip" class="tabs" aria-label="Tools" />
 
     <UiTabPanel id-prefix="tools" :tab="active" class="content">
+      <!-- Kept alive, so switching tabs preserves each tool's state. -->
       <KeepAlive>
         <component :is="activeComp" :key="active" />
       </KeepAlive>
@@ -42,6 +52,7 @@ useStickyOffset(strip, '--mw-sticky-extra')
 </template>
 
 <style scoped>
+/* A column that can shrink inside the shell. */
 .tool-console {
   display: flex;
   flex-direction: column;

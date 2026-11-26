@@ -1,3 +1,5 @@
+// Vite configuration for the dashboard: the fleet's shared application preset (@meddleware/frontend-config/vite) plus what is particular to this app.
+// The Vue single-file-component plugin, Vite's defineConfig and the shared preset.
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 import { meddlewareApp } from '@meddleware/frontend-config/vite'
@@ -5,10 +7,14 @@ import { meddlewareApp } from '@meddleware/frontend-config/vite'
 // meddlewareApp refuses VITE_E2E outside the end-to-end mode (`--mode e2e`: a mock wallet and a stub chain; nothing else may include them),
 // sets the browserslist build target and the dark default colour mode, and keeps @meddleware/wallet-adapter (the shared wallet singleton,
 // shipped as TS + .vue source) out of pre-bundling, so dev does not load a second copy of it.
+// The preset is wrapped by defineConfig so the editor can type-check the options.
 export default defineConfig(
   meddlewareApp({
+    // Vue is the only plugin the app adds.
     plugins: [vue()],
+    // The name used for the page title and the web app manifest.
     name: 'Meddleware',
+    // Options passed through to Vite unchanged.
     config: {
       optimizeDeps: {
         // The Walrus wasm client is dynamically imported inside the inline WalrusStorageView upload flow; keep it out of the eager

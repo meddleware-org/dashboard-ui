@@ -3,6 +3,7 @@
 // heading says what the tool does for a person; what it runs on is named only on its own card.
 import { defineAsyncComponent } from 'vue'
 
+/** One tool the dashboard hosts. */
 export interface DashboardTool {
   /** The address segment (`/tools/<id>`). */
   id: string
@@ -10,14 +11,17 @@ export interface DashboardTool {
   name: string
   /** What the tool does for a person: the card's heading. */
   title: string
+  /** One sentence for the card, in plain words. */
   description: string
   /** What it runs on, named only on its card. */
   runsOn: string
   /** Decoration only. */
   icon: string
+  /** The tool's view, loaded on first use so its dependencies load only when it is opened. */
   view: ReturnType<typeof defineAsyncComponent>
 }
 
+/** Every hosted tool, in the order the cards and tabs show them. */
 export const TOOLS: readonly DashboardTool[] = [
   {
     id: 'walrus-storage',

@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 [Semantic Versioning](https://semver.org/). Before 0.2.0, breaking changes ship as patch releases.
 Releases before 0.1.85 are recorded in the git history only.
 
+## [Unreleased]
+
+- Documentation pass (workspace documentation standard): every file has a header and line-level comments, every declaration a doc comment; `CONTRIBUTING.md` is new. The files synced from `@meddleware/frontend-config` now carry that package's commented templates (`npx mw-sync --write`). The npm-publish workflow's "not configured" warning had a garbled word ("--provenanceing") and now reads "npm publishing is not configured". The built bundle is unchanged.
+
 ## [0.1.106] - 2026-11-20
 
 - The five embedded tools take the copy-standard wording (a pass is a pass, the network fee is the network fee, "Platform fee rate"; the Walrus tool is "Walrus Storage" throughout).

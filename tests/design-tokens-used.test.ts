@@ -7,12 +7,15 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { join } from 'node:path'
 
+// Read the design tokens' own stylesheets, so the check is against what is really defined.
 const require = createRequire(import.meta.url)
 const tokenCss = readFileSync(require.resolve('@meddleware/design-tokens/tokens.css'), 'utf8')
 const seasonCss = readFileSync(require.resolve('@meddleware/design-tokens/seasons.css'), 'utf8')
+// declared(css): the custom properties a stylesheet defines.
 const declared = (css: string) => new Set([...css.matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1]!))
 const defined = declared(tokenCss + seasonCss)
 
+/** The .vue and .css files under a directory, recursively. */
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
     e.isDirectory()
@@ -31,8 +34,10 @@ const PANEL_PRIVATE = /^--_(muted|border)$/
 // they are not tokens and do not exist until a component measures itself, so the shell may read them only with a token as the fallback.
 const RUNTIME_PUBLISHED = ['--mw-header-offset', '--mw-sticky-extra']
 
+// The shell's own components and stylesheets.
 const files = sourceFiles(join(import.meta.dirname, '..', 'src'))
 
+// Three rules: the files exist, --warning is never a text colour, and every property read is one the tokens (or the file) define.
 describe('design tokens in the shell styles', () => {
   it('finds the components and stylesheets', () => {
     expect(files.length).toBeGreaterThan(0)

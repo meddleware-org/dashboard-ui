@@ -5,6 +5,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { offline } from '@meddleware/frontend-config/look'
 import { TOOLS, openNav, tool, tools } from './open.js'
 
+/** Start collecting uncaught page errors and refuse every request that leaves localhost; returns the (live) list of errors. */
 async function watch(page: Page): Promise<string[]> {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -12,6 +13,7 @@ async function watch(page: Page): Promise<string[]> {
   return errors
 }
 
+// The first screen: landmarks, one level-1 heading, one card per tool, and a card opens its tool in place.
 test('Tools is the first screen: one card per tool, each opening the tool in place, with the landmarks and one heading level 1', async ({ page }) => {
   const errors = await watch(page)
   await tools(page)
@@ -30,6 +32,7 @@ test('Tools is the first screen: one card per tool, each opening the tool in pla
   expect(errors).toEqual([])
 })
 
+// The treasury mounts and is linked from the footer.
 test('the treasury mounts at /treasury and is linked from the footer', async ({ page }) => {
   const errors = await watch(page)
   await tools(page)
@@ -39,6 +42,7 @@ test('the treasury mounts at /treasury and is linked from the footer', async ({ 
   expect(errors).toEqual([])
 })
 
+// Every tool is a tab of the console, and the address follows the tab.
 test('every tool mounts as a tab of the console, the address following the tab', async ({ page }) => {
   const errors = await watch(page)
   await page.goto('/tools/walrus-storage')
@@ -53,6 +57,7 @@ test('every tool mounts as a tab of the console, the address following the tab',
   expect(errors).toEqual([])
 })
 
+// The same with the mock wallet connected.
 test('every tool also mounts with a wallet connected', async ({ page }) => {
   const errors = await watch(page)
   await tool('Walrus Storage', true)(page)
