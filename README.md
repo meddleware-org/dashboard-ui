@@ -1,8 +1,8 @@
 # @meddleware/dashboard-ui
 
 The Meddleware dashboard, served at [`dash.meddleware.co.uk`](https://dash.meddleware.co.uk): a Vue 3 + Vite single-page app with the five
-tools in one place and one wallet connection for all of them (Treasury, and under *Blockchain* the Walrus Storage, Sealed Storage, Access Gate
-and Token Issuance consoles). Each tool comes from its own package, inside one shell with a chain and network selector. It holds no financial logic: every number is read from the chain by the embedded tool.
+tools in one place and one wallet connection for all of them (the Walrus Storage, Sealed Storage, Access Gate and Token Issuance consoles as tabs
+of one tool console, and the Treasury). Each tool comes from its own package, inside one shell with a network selector. It holds no financial logic: every number is read from the chain by the embedded tool.
 
 - **Stack:** Vue 3, Vite, `@meddleware/design-tokens`, `@meddleware/ui`, `@meddleware/wallet-adapter`.
 - **Image:** `quay.io/meddleware-org/dashboard-ui`, built on `quay.io/meddleware-org/static-server` (see `Dockerfile`).

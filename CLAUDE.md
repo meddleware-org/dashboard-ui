@@ -7,27 +7,26 @@ Walrus Storage, Sealed Storage, Access Gate, Token Issuance) with one wallet con
 exported component from its own package (e.g. `TreasuryView` from `@meddleware/treasury-ui`, `WalrusStorageView` from
 `@meddleware/walrus-storage-ui`) and wrapping it in the dashboard shell.
 
-### Information architecture (two org sections + a drill-down)
+### Information architecture (three screens)
 
-The sidebar has two **modes**:
+The sidebar has two groups, and the routes are:
 
-- **Top level** — organisation sections. Currently **Treasury** (the default route `/`, embedding
-  `TreasuryView`) and **Blockchain**. Room for more general-org sections later.
-- **Blockchain mode** — entered by clicking the *Blockchain* item. The sidebar swaps to a modular
-  **chain selector** (`ChainSelector`, defaults to Sui, data-driven for future chains) plus an
-  **up-one-level** ("← Back") control that returns to the top level *without leaving the page*.
-  The content area (`/blockchain`, `views/BlockchainView.vue`) is a **qt-style tabbed console**
-  (`AppTabNav variant="raised"`) whose tabs are the Sui tools — Walrus Storage, Sealed Storage,
-  Access Gate, Token Issuance — each lazy-loaded and kept alive across tab switches.
+- **Tools** — `/` (`views/ToolsView.vue`): one card for each tool available now, in the catalogue order of `src/tools.ts`. The sidebar group
+  lists "All tools" and one item per tool.
+- **The tool console** — `/tools/<id>` (`views/ToolConsole.vue`): a **tabbed console** (`AppTabNav variant="raised"`) with one tab for every
+  tool; the address names the open tool and switching tabs updates it (`router.replace`, so back returns to where the visitor came from).
+  Each view is lazy-loaded and kept alive across tab switches. An unknown id redirects to `/`.
+- **About Meddleware** — the group holds the Treasury (`/treasury`, `TreasuryView`) and two links out (the standards page and the public roadmap).
 
-Sidebar mode is local UI state (`sidebarView: 'top' | 'blockchain'`), not a route: clicking
-*Blockchain* while already on `/blockchain` just re-opens the selector (no reload); *up one level*
-only changes the sidebar. Legacy per-tool paths (`/walrus`, …) redirect to `/blockchain`.
+Sidebar items are real links (`SidebarItem href` through `RouterLink custom`), so they open in a new tab and work without script. Old addresses
+redirect: `/blockchain` to `/`, and each earlier per-tool path (`/walrus`, `/walrus-storage`, `/sealed-storage`, `/access-gate`,
+`/token-deployer`, `/token-issuance`) to its `/tools/<id>`. There is no chain selector: the tools list is data (`src/tools.ts`), and a
+new tool is one entry there.
 
 **DAO is retired** from the dashboard until governance is usable: there is no route for it and `@meddleware/dao-ui` is not a
 dependency (it was removed unused on 2026-10-31; add it back with the route when DAO participation ships).
 
-Navigation is real links (`SidebarItem href` through `RouterLink custom`), so it opens in a new tab and works without script. Below 45em the
+Below 45em the
 sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHeader sidebar-id="main-nav"`). Each route has a visually hidden
 `h1` (`route.meta.title`); the tools bring their own `h2`.
 
@@ -62,14 +61,10 @@ sidebar is a drawer (the Popover API) opened by the header's menu button (`AppHe
 - **Shell slots are unwrapped.** `AppHeader`/`AppSidebar`/`AppFooter` render slot content directly,
   so the shell styles its own pieces (e.g. `.foot` in `App.vue`). The frame is `UiAppShell` (skip link, `<main>`); the page scrolls, the tool
   tabs stay under the sticky header, and the shell uses only token roles (no ui-private `--_*` variables).
-- **Sidebar navigation components come from `@meddleware/ui`.** Use `SidebarItem` for entries
-  (and `SidebarGroup` if a mode ever needs grouped headers). Do not create local copies. The
-  sidebar renders one of two modes (see IA above): top-level org sections, or the Blockchain
-  chain-selector. Onboarding a new chain = a new entry in `src/chains.ts` plus a new tool set in
-  `BlockchainView`'s `TOOLSETS` — no shell changes (`App.vue` passes the chosen chain to the view).
-- **qt-style tabbed tools.** The Blockchain view uses the shared `AppTabNav variant="raised"`
-  (WAI-ARIA tabs) with a `UiTabPanel` around the lazy, kept-alive tool views. Do not give each tool its own route;
-  they are tabs within `/blockchain`.
+- **Sidebar navigation components come from `@meddleware/ui`.** Use `SidebarItem` for entries and `SidebarGroup` for the two groups (Tools,
+  About Meddleware). Do not create local copies.
+- **One tabbed console for the tools.** `/tools/<id>` uses the shared `AppTabNav variant="raised"` (WAI-ARIA tabs) with a `UiTabPanel` around the
+  lazy, kept-alive tool views. Do not give each tool its own route; they are tabs of the console, and the address names the open one.
 - **StatusWidget polls `https://status.meddleware.co.uk/api/status` every 60 s** via plain
   `fetch`. No external libraries. Three states: `ok`, `degraded`, `error`.
 - **One `@mysten/sui` in the tree — a direct dependency (`^2.36.0`), no `overrides`.** Two copies of
@@ -94,7 +89,7 @@ contract with design-tokens — no `--warning` text colour, no undefined custom 
 release build-args stay in step and no access-gate price variable exists (`tests/build-inputs.test.ts`),
 and the release-gate contract (`tests/workflows.test.ts`). `npm run test:e2e` (Playwright; Chromium locally, five browsers in CI with
 `E2E_BROWSERS=all`) builds the app in e2e mode (`npm run build:e2e`: a mock wallet and an empty stub chain, `src/e2e.ts`, refused in any
-other mode), serves `dist` and mounts `/`, every tool tab of `/blockchain` (disconnected and connected) and the legacy redirects with all
+other mode), serves `dist` and mounts `/`, every tool tab of `/tools/<id>` (disconnected and connected) and the legacy redirects with all
 external requests refused, then runs the shared accessibility sweep (`e2e/a11y.spec.ts`: every route and tool in every colour mode × season,
 reflow with the drawer at 320 px, text size, forced colours, keyboard). `tests/app.test.ts` pins the header's brand mark and that the app keeps no icon of its own; `tests/dist.test.ts` runs over the built `dist/` (CI runs it after the build with
 `REQUIRE_DIST=1`; a plain `npm test` before a build skips it): the icon set and the manifest name, one icon link per kind, the mark in the bundle and no `◆`
@@ -134,9 +129,9 @@ npm run build && npm run check:bundle && npm run check:csp && npm run check:lice
 
 ## Adding a tool
 
-A tool of an existing chain is a new entry in `TOOLSETS` in `views/BlockchainView.vue` (an `id`, a `label`, a lazy import of the view from the
-tool's package), plus its package in `package.json` and a state in `e2e/open.ts` (`TOOLS`) and `e2e/a11y.spec.ts`. An organisation section
-(like Treasury) is a route in `router/index.ts` and a `SidebarItem` in `App.vue`. Either way the dashboard stays thin: no chain calls, no
+A tool is a new entry in `TOOLS` in `src/tools.ts` (an `id`, its `name`, the card's `title` and `description`, what it `runsOn`, an `icon`, and a lazy
+import of the view from the tool's package), plus its package in `package.json` and a state in `e2e/open.ts` (`TOOLS`) and `e2e/a11y.spec.ts`. An
+organisation page (like Treasury) is a route in `router/index.ts` and a `SidebarItem` in `App.vue`. Either way the dashboard stays thin: no chain calls, no
 signing and no financial logic of its own.
 
 ## Dependency order
